@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AgroVision</string>
+    <string name="title_app">AgroVision</string>
+    <string name="tagline">ప్రతి పంటకు స్మార్ట్ సంరక్షణ</string>
+    <string name="btn_camera">కెమెరా</string>
+    <string name="btn_gallery">గ్యాలరీ</string>
+    <string name="btn_analyze">విశ్లేషించండి</string>
+    <string name="lang_label">భాష</string>
+    <string name="hint_select">విశ్లేషణ ప్రారంభించడానికి ఆకును ఫోటో తీయండి లేదా ఎంచుకోండి.</string>
+    <string name="image_ready">చిత్రం విశ్లేషణకు సిద్ధంగా ఉంది.</string>
+    <string name="model_loaded">ఎఐ మోడల్ లోడ్ అయింది. మీ పంటలను రక్షించడానికి సిద్ధం.</string>
+    <string name="model_error">ఎఐ మోడల్ లోపం: %1$s</string>
+    <string name="scan_running">పరికరంలో లోతైన స్కాన్ నడుస్తోంది...</string>
+    <string name="scan_failed">స్కాన్ విఫలమైంది: %1$s</string>
+    <string name="analysis_title">విశ్లేషణ ఫలితాలు</string>
+    <string name="diagnosis_prefix">నిర్ధారణ:</string>
+    <string name="confidence_prefix">నమ్మకం:</string>
+    <string name="healthy_note">మొక్క ఆరోగ్యంగా ఉంది. సాధారణ సంరక్షణ మరియు పర్యవేక్షణ కొనసాగించండి.</string>
+    <string name="disease_note">చర్య అవసరం: సంభావ్య వ్యాధి గుర్తించబడింది. సిఫారసు చేసిన చికిత్సలను చూడండి.</string>
+    <string name="toast_capture_cancelled">కెమెరా క్యాప్చర్ రద్దు</string>
+    <string name="schemes_title">ప్రభుత్వ పథకాలు</string>
+    <string name="voice_title">వాయిస్ &amp; హెల్ప్‌లైన్</string>
+    <string name="voice_subtitle">బహుభాష సహాయం కోసం ఎప్పుడైనా కాల్ చేయండి</string>
+    <string name="voice_call">హెల్ప్‌లైన్‌కు కాల్ చేయండి</string>
+    <string name="voice_how">ఇది ఎలా పనిచేస్తుంది</string>
+    <string name="voice_steps">1) టోల్-ఫ్రీ 1800-123-4567 కు కాల్ చేయండి\n2) మీ భాషను ఎంచుకోండి\n3) సమస్యను వివరించి SMS ద్వారా పరిష్కారం పొందండి</string>
+    <string name="chat_title">AI సహాయకుడు (Gemini)</string>
+    <string name="chat_subtitle">వెబ్ చాట్ లాగా — AgroVision సర్వర్ + Wi‑Fi అవసరం. వ్యాధి స్కాన్ ఆఫ్‌లైన్.</string>
+    <string name="chat_welcome">నమస్కారం! నేను వెబ్‌సైట్‌లోని Gemini సహాయకుడిని. పంటలు, వ్యాధులు, పథకాలు అడగండి. PCలో Flask నడుపుతూ ఉండండి.</string>
+    <string name="chat_thinking">ఆలోచిస్తోంది…</string>
+    <string name="chat_hint">వ్యాధులు, పథకాలు లేదా సంరక్షణ సూచనలు అడగండి</string>
+    <string name="api_base_url">http://10.0.2.2:5000</string>
+    <string name="chat_offline">చాట్‌కు ఇంటర్నెట్ మరియు నడుస్తున్న AgroVision సర్వర్ కావాలి.</string>
+    <string name="chat_error_generic">సహాయకుడిని చేరుకోలేకపోయాం. strings.xmlలో సర్వర్ URL మరియు .envలో GEMINI_API_KEY తనిఖీ చేయండి.</string>
+</resources>

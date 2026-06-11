@@ -5,3 +5,4 @@ numpy
 Pillow
 h5py
 google-generativeai
+python-dotenv

@@ -14,7 +14,22 @@ If you encounter any errors, install dependencies individually:
 pip install Flask flask-cors tensorflow numpy Pillow h5py google-generativeai
 ```
 
-### 2. Verify Required Files
+### 2. Configure Gemini Chatbot (required for `/chatbot`)
+
+```bash
+copy .env.example .env
+```
+
+Edit `.env` and set your API key from [Google AI Studio](https://aistudio.google.com/apikey):
+
+```
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-2.0-flash
+```
+
+Restart the Flask server after changing `.env`.
+
+### 3. Verify Required Files
 
 Make sure these files exist in the project directory:
 - ✅ `app.py` - Main Flask application
@@ -22,7 +37,7 @@ Make sure these files exist in the project directory:
 - ✅ `templates/` folder with all HTML files
 - ✅ `static/` folder with CSS and JS files
 
-### 3. Run the Application
+### 4. Run the Application
 
 **Option 1: Using run.py (Recommended)**
 ```bash
@@ -34,7 +49,7 @@ python run.py
 python app.py
 ```
 
-### 4. Access the Website
+### 5. Access the Website
 
 Once running, open your browser and visit:
 - 🏠 **Home**: http://127.0.0.1:5000/
@@ -42,6 +57,20 @@ Once running, open your browser and visit:
 - 🏛️ **Government Schemes**: http://127.0.0.1:5000/schemes
 - 🎤 **Voice Help**: http://127.0.0.1:5000/voice
 - 🤖 **Chatbot**: http://127.0.0.1:5000/chatbot
+
+## Verify Core Features (automated tests)
+
+```bash
+python -m unittest tests.test_api -v
+```
+
+Or double-click `run_tests.bat`. This checks:
+
+- `/api/health` — model file, 38 labels, 38 disease DB entries
+- `/predict` — real inference on a test image (requires `plant_disease_model.h5`)
+- `/api/chat` — agriculture filter + mocked Gemini reply
+
+Low-confidence uploads are rejected inside `/predict` (no separate `validate-plant` endpoint; `plant_validity_model` is not used).
 
 ## Troubleshooting
 
@@ -62,9 +91,10 @@ Once running, open your browser and visit:
    - Or stop other applications using port 5000
 
 4. **Chatbot API Error**
-   - Verify internet connection
-   - Check Google API key is valid
-   - Chatbot will show fallback message if API fails
+   - Ensure `.env` exists with a valid `GEMINI_API_KEY`
+   - Run `pip install python-dotenv` and restart the server
+   - Try `GEMINI_MODEL=gemini-2.0-flash` or `gemini-1.5-flash` in `.env`
+   - On Android, set `api_base_url` in `strings.xml` to your PC's LAN IP (physical device)
 
 5. **Import Errors**
    ```bash

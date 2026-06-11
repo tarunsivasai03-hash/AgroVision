@@ -1,20 +1,12 @@
-# Model Placeholder Directory
+# Models
 
-This directory will contain your trained AI models:
-- leaf_model.h5 (for leaf disease detection)
-- seed_model.h5 (for seed defect detection)
+The active disease model lives at the project root:
 
-## For Demo/Hackathon Mode:
-The app.py is currently configured to work WITHOUT models for demonstration purposes.
+- `plant_disease_model.h5` — Flask backend (`/predict`)
+- `android-app/app/src/main/assets/plant_disease_model.tflite` — Android offline inference
 
-## When you have trained models:
-1. Place your .h5 model files in this directory
-2. Uncomment the model loading lines in app.py:
-   - `leaf_model = tf.keras.models.load_model("model/leaf_model.h5")`
-   - `seed_model = tf.keras.models.load_model("model/seed_model.h5")`
-3. Uncomment the prediction lines in the predict() function
+Regenerate TFLite after updating the H5 file:
 
-## Model Training Resources:
-- Use TensorFlow/Keras for training
-- Recommended input size: 224x224 pixels
-- Dataset sources: PlantVillage, Kaggle agriculture datasets
+```bash
+python scripts/convert_to_tflite.py
+```

@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Weather Alerts - AgroVision</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- GLOBAL DESIGN SYSTEM VARIABLES --- */
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            
+            --text-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --border-light: #e2e8f0;
+            
+            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.08);
+            --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            --alert-bg: #fffbeb;
+            --alert-border: #fcd34d;
+            --alert-text: #b45309;
+        }
+
+        /* Dark Mode Override */
+        html[data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-surface: #1e293b;
+            
+            --text-heading: #f8fafc;
+            --text-body: #cbd5e1;
+            --text-muted: #94a3b8;
+            
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --border-light: #334155;
+            
+            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.3);
+
+            --alert-bg: rgba(245, 158, 11, 0.1);
+            --alert-border: rgba(245, 158, 11, 0.3);
+            --alert-text: #fcd34d;
+        }
+
+        /* --- BASE STYLES --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        h1, h2, h3, h4, .brand-font {
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-heading);
+        }
+
+        a { text-decoration: none; color: inherit; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; width: 100%; }
+
+        /* --- OFFLINE INDICATOR --- */
+        .offline-indicator {
+            background-color: #ef4444; color: white; text-align: center;
+            padding: 0.75rem; font-size: 0.875rem; font-weight: 500; display: none;
+        }
+        .offline-indicator.show { display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+
+        /* --- NAVBAR --- */
+        .navbar {
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; padding: 1rem 0;
+            transition: var(--transition);
+        }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; }
+        .nav-logo a { font-size: 1.5rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+        .nav-menu { display: flex; list-style: none; gap: 2rem; align-items: center; }
+        .nav-menu a { font-weight: 500; color: var(--text-muted); transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
+        .nav-menu a:hover, .nav-menu a.active { color: var(--primary); }
+
+        /* --- PAGE HEADER --- */
+        .page-header { padding: 3rem 0 2rem; text-align: center; }
+        .page-header h1 { font-size: 2.5rem; margin-bottom: 0.75rem; }
+        .page-header p { font-size: 1.1rem; color: var(--text-muted); max-width: 650px; margin: 0 auto; line-height: 1.6; }
+
+        /* --- MAIN LAYOUT --- */
+        .weather-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+            align-items: start;
+        }
+
+        .weather-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition);
+        }
+
+        .weather-card h2 { font-size: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .card-desc { color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.6; font-size: 0.95rem; }
+
+        /* --- QUICK OPTIONS --- */
+        .quick-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .quick-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            color: var(--text-heading);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+        }
+
+        .quick-btn svg { color: var(--text-muted); transition: var(--transition); }
+        
+        .quick-btn:hover, .quick-btn.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+            transform: translateX(4px);
+        }
+        html[data-theme="dark"] .quick-btn:hover, html[data-theme="dark"] .quick-btn.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--primary);
+        }
+        .quick-btn:hover svg, .quick-btn.active svg { color: inherit; }
+
+        .geo-btn {
+            margin-top: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+        .geo-btn svg { color: white; }
+        .geo-btn:hover {
+            background: var(--primary-dark);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        html[data-theme="dark"] .geo-btn:hover { color: white; }
+
+        /* --- WEATHER RESULTS DASHBOARD --- */
+        .weather-result-container {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .empty-state {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-muted); text-align: center; gap: 1rem; opacity: 0.7;
+        }
+
+        .current-weather {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .current-location { font-size: 2rem; margin-bottom: 0.25rem; }
+        .current-desc { color: var(--primary); font-weight: 600; font-size: 1.1rem; text-transform: capitalize;}
+        .current-temp-wrapper { text-align: right; }
+        .current-temp { font-size: 4rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: var(--text-heading); line-height: 1; }
+        .current-feels { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-pill {
+            background: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .stat-icon { color: var(--primary); }
+        .stat-details span { display: block; font-size: 0.85rem; color: var(--text-muted); }
+        .stat-details strong { display: block; font-size: 1.1rem; color: var(--text-heading); font-family: 'Outfit', sans-serif; }
+
+        /* Alerts */
+        .alert-box {
+            background: var(--alert-bg);
+            border: 1px solid var(--alert-border);
+            color: var(--alert-text);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .alert-box svg { flex-shrink: 0; margin-top: 2px; }
+        .alert-box strong { display: block; margin-bottom: 0.25rem; font-family: 'Outfit', sans-serif; font-size: 1.1rem; }
+        .alert-box p { font-size: 0.95rem; line-height: 1.5; opacity: 0.9; }
+
+        /* Forecast */
+        .forecast-header { font-size: 1.25rem; margin-bottom: 1rem; }
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 1rem;
+        }
+        .forecast-day {
+            background: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .forecast-day:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .forecast-day strong { display: block; color: var(--text-heading); margin-bottom: 0.5rem; font-size: 1.05rem; }
+        .forecast-cond { color: var(--primary); font-size: 0.85rem; font-weight: 600; margin: 0.5rem 0; text-transform: capitalize; }
+        .forecast-temps { font-weight: 600; color: var(--text-heading); font-size: 1.1rem; margin-bottom: 0.25rem; }
+        .forecast-rain { color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem; }
+
+        /* Loading Spinner */
+        .spinner { width: 30px; height: 30px; border: 3px solid var(--border-light); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- FLOATING ACTIONS --- */
+        .floating-actions { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 1rem; z-index: 90; }
+        .float-btn {
+            width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border-light);
+            background: var(--bg-surface); color: var(--text-heading); display: flex; justify-content: center; align-items: center;
+            cursor: pointer; box-shadow: var(--shadow-float); transition: var(--transition);
+        }
+        .float-btn:hover { transform: translateY(-3px); border-color: var(--primary); color: var(--primary); }
+
+        /* --- MOBILE NAV & FOOTER --- */
+        .mobile-bottom-nav {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-light); z-index: 99; padding-bottom: env(safe-area-inset-bottom);
+        }
+        .mobile-bottom-nav ul { display: flex; justify-content: space-around; list-style: none; padding: 0.5rem 0; }
+        .mobile-bottom-nav a { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); padding: 0.5rem; transition: var(--transition); }
+        .mobile-bottom-nav a.active { color: var(--primary); }
+
+        .footer { background: var(--bg-surface); border-top: 1px solid var(--border-light); padding: 2rem 0; margin-top: auto; text-align: center; color: var(--text-muted); font-size: 0.875rem; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 900px) {
+            .weather-layout { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .mobile-bottom-nav { display: block; }
+            .floating-actions { bottom: 5rem; }
+            .container { padding-bottom: 4rem; }
+            .page-header { padding: 2rem 0 1.5rem; }
+            .weather-card { padding: 1.5rem; }
+            .current-weather { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .current-temp-wrapper { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="offline-indicator" id="offlineIndicator">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 15.6l-5.3-5.3a1 1 0 010-1.4l5.3-5.3M15.4 8.4l5.3 5.3a1 1 0 010 1.4l-5.3 5.3"/></svg>
+        You are currently offline. Voice Help is still available via phone call.
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container container">
+            <div class="nav-logo brand-font">
+                <a href="/">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <span>AgroVision</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" data-lang="navHome">Home</a></li>
+                <li><a href="/detect" data-lang="navDetect">Detect Disease</a></li>
+                <li><a href="/schemes" data-lang="navSchemes">Govt Schemes</a></li>
+                <li><a href="/weather" class="active" data-lang="navWeather">Weather</a></li>
+                <li><a href="/voice" data-lang="navVoice">Voice Help</a></li>
+                <li><a href="/chatbot" data-lang="navChatbot">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline; vertical-align:middle; margin-right:4px;"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+                    Chatbot
+                </a></li>
+            </ul>
+            <div class="language-selector">
+                <select id="languageSelect" class="language-select" onchange="changeLanguage(this.value)" aria-label="Select Language">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="te">తెలుగు</option>
+                    <option value="ta">தமிழ்</option>
+                    <option value="kn">ಕನ್ನಡ</option>
+                    <option value="mr">मराठी</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-header container">
+        <h1 class="brand-font">Farm Weather Alerts</h1>
+        <p>Monitor crucial weather patterns affecting crop health. Select a region or use GPS to get instant forecasts, frost warnings, and heavy rain alerts.</p>
+    </header>
+
+    <main class="container weather-layout">
+        
+        <aside class="weather-card">
+            <h2 class="brand-font">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+                Region
+            </h2>
+            <p class="card-desc">Select a major agricultural hub below, or allow location access to fetch precise data for your farm.</p>
+            
+            <div class="quick-options" id="quickOptions">
+                <button class="quick-btn" data-location="Hyderabad, India">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Hyderabad
+                </button>
+                <button class="quick-btn" data-location="Amaravati, India">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Amaravati
+                </button>
+                <button class="quick-btn" data-location="Mumbai, India">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Mumbai
+                </button>
+                <button class="quick-btn" data-location="Bengaluru, India">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Bengaluru
+                </button>
+                <button class="quick-btn" data-location="Lucknow, India">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Lucknow
+                </button>
+                <button class="quick-btn geo-btn" id="geoBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m12 8 4 4-4 4"/><path d="M8 12h8"/></svg>
+                    Use My GPS Location
+                </button>
+            </div>
+        </aside>
+
+        <div class="weather-card">
+            <div id="weatherResult" class="weather-result-container">
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                    <p>Select a region from the sidebar or tap "Use My GPS Location" to load farm weather insights.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="floating-actions">
+        <button class="float-btn" id="themeToggle" title="Toggle Theme">
+            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="float-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Scroll to Top">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
+    </div>
+
+    <nav class="mobile-bottom-nav">
+        <ul>
+            <li><a href="/">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Home
+            </a></li>
+            <li><a href="/detect">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Detect
+            </a></li>
+            <li><a href="/weather" class="active">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                Weather
+            </a></li>
+            <li><a href="/voice">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                Voice
+            </a></li>
+        </ul>
+    </nav>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 AgroVision. Data provided by OpenWeather API.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Theme Toggling Logic ---
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const sunIcon = document.querySelector('.sun-icon');
+        const moonIcon = document.querySelector('.moon-icon');
+        const htmlElement = document.documentElement;
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            } else {
+                htmlElement.removeAttribute('data-theme');
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+            localStorage.setItem('agrovision-theme', theme);
+        }
+
+        const savedTheme = localStorage.getItem('agrovision-theme') || 'light';
+        setTheme(savedTheme);
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            setTheme(currentTheme);
+        });
+
+        // --- Offline Detection ---
+        window.addEventListener('offline', () => document.getElementById('offlineIndicator').classList.add('show'));
+        window.addEventListener('online', () => document.getElementById('offlineIndicator').classList.remove('show'));
+
+        // --- Weather Fetch & Render Logic ---
+        const weatherButtons = document.querySelectorAll('.quick-btn[data-location]');
+        const weatherResult = document.getElementById('weatherResult');
+        const geoBtn = document.getElementById('geoBtn');
+
+        // Helper to set active button state
+        function setActiveButton(clickedBtn) {
+            document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
+            if(clickedBtn) clickedBtn.classList.add('active');
+        }
+
+        async function fetchWeather(location, btnRef = null) {
+            setActiveButton(btnRef);
+            
+            weatherResult.innerHTML = `
+                <div class="empty-state">
+                    <div class="spinner"></div>
+                    <p>Fetching satellite weather data...</p>
+                </div>
+            `;
+            
+            try {
+                const res = await fetch(`/api/weather?location=${encodeURIComponent(location)}`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Could not fetch weather.');
+                renderWeather(data.weather);
+            } catch (err) {
+                let errorMsg = err.message;
+                if (err.message.toLowerCase().includes('openweather_api_key')) {
+                    errorMsg = 'OpenWeather API key is missing or invalid. Please configure your .env file.';
+                }
+                weatherResult.innerHTML = `
+                    <div class="empty-state" style="color: #ef4444;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <p>${errorMsg}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderWeather(weather) {
+            const alertHtml = (weather.alerts && weather.alerts.length)
+                ? weather.alerts.map(alert => `
+                    <div class="alert-box">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <div>
+                            <strong>${alert.event} Alert</strong>
+                            <p>${alert.description}</p>
+                        </div>
+                    </div>`).join('')
+                : '';
+
+            const forecastHtml = weather.forecast.map(day => `
+                <div class="forecast-day">
+                    <strong>${day.date}</strong>
+                    <div class="forecast-cond">${day.condition}</div>
+                    <div class="forecast-temps">${day.temp_max}° / <span style="opacity:0.7;font-weight:500;">${day.temp_min}°</span></div>
+                    <div class="forecast-rain">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>
+                        ${day.precipitation}%
+                    </div>
+                </div>
+            `).join('');
+
+            weatherResult.innerHTML = `
+                <div class="current-weather">
+                    <div>
+                        <h3 class="current-location brand-font">${weather.location}</h3>
+                        <p class="current-desc">${weather.current.condition}</p>
+                    </div>
+                    <div class="current-temp-wrapper">
+                        <div class="current-temp">${weather.current.temperature}°</div>
+                        <div class="current-feels">Feels like ${weather.current.feels_like}°C</div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-pill">
+                        <svg class="stat-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                        <div class="stat-details">
+                            <span>Humidity</span>
+                            <strong>${weather.current.humidity}%</strong>
+                        </div>
+                    </div>
+                    <div class="stat-pill">
+                        <svg class="stat-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+                        <div class="stat-details">
+                            <span>Wind Speed</span>
+                            <strong>${weather.current.wind_speed} m/s</strong>
+                        </div>
+                    </div>
+                </div>
+
+                ${alertHtml}
+
+                <h3 class="forecast-header brand-font">5-Day Farm Forecast</h3>
+                <div class="forecast-grid">${forecastHtml}</div>
+            `;
+        }
+
+        weatherButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                fetchWeather(button.dataset.location, button);
+            });
+        });
+
+        geoBtn.addEventListener('click', () => {
+            setActiveButton(geoBtn);
+            if (!navigator.geolocation) {
+                weatherResult.innerHTML = `
+                    <div class="empty-state" style="color: #ef4444;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <p>Geolocation is not supported by your browser.</p>
+                    </div>`;
+                return;
+            }
+            
+            weatherResult.innerHTML = `
+                <div class="empty-state">
+                    <div class="spinner"></div>
+                    <p>Detecting your location...</p>
+                </div>
+            `;
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                    const res = await fetch(`/api/weather?location=${latitude},${longitude}`);
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Could not fetch weather.');
+                    renderWeather(data.weather);
+                } catch (err) {
+                    weatherResult.innerHTML = `
+                        <div class="empty-state" style="color: #ef4444;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <p>${err.message}</p>
+                        </div>
+                    `;
+                }
+            }, () => {
+                weatherResult.innerHTML = `
+                    <div class="empty-state" style="color: #ef4444;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <p>Location access denied. Please select a region manually.</p>
+                    </div>`;
+            });
+        });
+    </script>
+</body>
+</html>

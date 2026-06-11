@@ -7,330 +7,700 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* --- GLOBAL DESIGN SYSTEM VARIABLES --- */
         :root {
-            --primary: #2ecc71;
-            --primary-dark: #27ae60;
-            --secondary: #2c3e50;
-            --text-dark: #2d3436;
-            --text-light: #636e72;
-            --bg-light: #f9fbfd;
-            --shadow: 0 10px 30px rgba(0,0,0,0.08);
-            --radius: 16px;
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-chat-user: var(--primary);
+            --bg-chat-bot: #f1f5f9;
+            
+            --text-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --text-chat-user: #ffffff;
+            
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --border-light: #e2e8f0;
+            
+            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.08);
+            --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* Dark Mode Override */
+        html[data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-chat-bot: #334155;
+            
+            --text-heading: #f8fafc;
+            --text-body: #cbd5e1;
+            --text-muted: #94a3b8;
+            
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --border-light: #334155;
+            
+            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.3);
+        }
+
+        /* --- BASE STYLES --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg-light);
-            color: var(--text-dark);
+            background-color: var(--bg-body);
+            color: var(--text-body);
             height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: var(--transition);
+            overflow: hidden; /* App-like feel */
         }
 
-        /* Navbar */
+        h1, h2, h3, h4, .brand-font {
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-heading);
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* --- OFFLINE INDICATOR --- */
+        .offline-indicator {
+            background-color: #ef4444;
+            color: white;
+            text-align: center;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: none;
+            flex-shrink: 0;
+        }
+        .offline-indicator.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* --- NAVBAR --- */
         .navbar {
-            background: white;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid #eee;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-light);
             padding: 1rem 0;
+            flex-shrink: 0;
+            z-index: 100;
         }
 
         .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
             padding: 0 1.5rem;
         }
 
         .nav-logo a {
-            font-family: 'Roboto Slab', serif;
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--primary-dark);
-            text-decoration: none;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .nav-menu {
             display: flex;
-            gap: 2rem;
             list-style: none;
+            gap: 2rem;
+            align-items: center;
         }
 
         .nav-menu a {
-            text-decoration: none;
-            color: var(--text-dark);
             font-weight: 500;
+            color: var(--text-muted);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .nav-menu a.active {
+        .nav-menu a:hover, .nav-menu a.active {
             color: var(--primary);
         }
 
-        /* Chat Container */
-        .chat-container {
+        .language-selector select {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            background: var(--bg-surface);
+            color: var(--text-body);
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* --- CHAT LAYOUT --- */
+        .main-chat-wrapper {
             flex: 1;
-            max-width: 900px;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-container {
             width: 100%;
-            margin: 0 auto;
+            max-width: 900px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
             display: flex;
             flex-direction: column;
-            padding: 2rem 1rem;
             overflow: hidden;
         }
 
         .chat-header {
-            text-align: center;
-            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
         }
 
-        .chat-header h1 {
-            font-family: 'Roboto Slab', serif;
-            font-size: 2rem;
-            color: var(--secondary);
+        .bot-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        html[data-theme="dark"] .bot-avatar {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--primary);
+        }
+
+        .chat-header-text h1 {
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .chat-header-text p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* --- MESSAGES AREA --- */
+        .messages-container {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Custom Scrollbar for messages */
+        .messages-container::-webkit-scrollbar { width: 6px; }
+        .messages-container::-webkit-scrollbar-track { background: transparent; }
+        .messages-container::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 10px; }
+
+        .info-banner {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        html[data-theme="dark"] .info-banner {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+
+
+        .suggestion-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
             margin-bottom: 0.5rem;
         }
 
-        .chat-header p {
-            color: var(--text-light);
-            font-size: 0.95rem;
+        .suggestion-chip {
+            border: 1px solid var(--border-light);
+            background: var(--bg-surface);
+            color: var(--text-body);
+            border-radius: 999px;
+            padding: 0.55rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
         }
 
-        /* Messages Area */
-        .messages-container {
-            flex: 1;
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 1.5rem;
-            overflow-y: auto;
-            margin-bottom: 1rem;
-            min-height: 400px;
-            max-height: 600px;
+        .suggestion-chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        html[data-theme="dark"] .suggestion-chip:hover {
+            background: rgba(16, 185, 129, 0.12);
         }
 
         .message {
-            margin-bottom: 1.5rem;
             display: flex;
-            animation: fadeIn 0.3s ease-in;
+            flex-direction: column;
+            max-width: 80%;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        @keyframes fadeIn {
+        @keyframes slideUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
-            justify-content: flex-end;
+            align-self: flex-end;
+            align-items: flex-end;
         }
 
         .message.bot {
-            justify-content: flex-start;
+            align-self: flex-start;
+            align-items: flex-start;
         }
 
-        .message-content {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            word-wrap: break-word;
+        .message-bubble {
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
             line-height: 1.5;
+            font-size: 0.95rem;
+            word-wrap: break-word;
         }
 
-        .message.user .message-content {
-            background: var(--primary);
-            color: white;
+        .message.user .message-bubble {
+            background: var(--bg-chat-user);
+            color: var(--text-chat-user);
             border-bottom-right-radius: 4px;
         }
 
-        .message.bot .message-content {
-            background: #f0f0f0;
-            color: var(--text-dark);
+        .message.bot .message-bubble {
+            background: var(--bg-chat-bot);
+            color: var(--text-body);
             border-bottom-left-radius: 4px;
+        }
+
+        /* Formatted text inside bot bubble */
+        .message.bot strong {
+            color: var(--text-heading);
+            font-weight: 600;
+        }
+
+        .message.bot ul {
+            padding-left: 1.2rem;
+            margin-top: 0.5rem;
+        }
+
+        .message.bot li {
+            margin-bottom: 0.35rem;
         }
 
         .message-time {
             font-size: 0.75rem;
-            color: var(--text-light);
-            margin-top: 4px;
-            text-align: right;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+            padding: 0 0.5rem;
         }
 
-        .message.bot .message-time {
-            text-align: left;
-        }
-
+        /* --- TYPING INDICATOR --- */
         .typing-indicator {
             display: flex;
-            gap: 4px;
-            padding: 12px 16px;
+            gap: 6px;
+            padding: 0.5rem 0;
         }
 
         .typing-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: var(--text-light);
-            animation: typing 1.4s infinite;
+            background: var(--text-muted);
+            animation: typingBounce 1.4s infinite ease-in-out both;
         }
 
-        .typing-dot:nth-child(2) {
-            animation-delay: 0.2s;
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
         }
 
-        .typing-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
-        }
-
-        /* Input Area */
+        /* --- INPUT AREA --- */
         .input-container {
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 1rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-light);
             display: flex;
             gap: 1rem;
             align-items: center;
         }
 
-        .input-container input {
+        .input-wrapper {
             flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 24px;
+            position: relative;
+        }
+
+        .input-container input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 1px solid var(--border-light);
+            border-radius: 999px;
             font-size: 1rem;
+            background: var(--bg-body);
+            color: var(--text-body);
             outline: none;
-            transition: 0.3s;
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
         }
 
         .input-container input:focus {
             border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
         }
 
         .send-button {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 24px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
-        .send-button:hover {
+        .send-button:hover:not(:disabled) {
             background: var(--primary-dark);
+            transform: translateY(-2px);
         }
 
         .send-button:disabled {
-            background: #ccc;
+            background: var(--border-light);
+            color: var(--text-muted);
             cursor: not-allowed;
+            box-shadow: none;
         }
 
-        .info-banner {
-            background: rgba(46, 204, 113, 0.1);
-            border-left: 4px solid var(--primary);
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            color: var(--secondary);
+        /* --- FLOATING ACTIONS --- */
+        .floating-actions {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 90;
         }
 
-        /* Mobile */
+        .float-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1px solid var(--border-light);
+            background: var(--bg-surface);
+            color: var(--text-heading);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-float);
+            transition: var(--transition);
+        }
+
+        .float-btn:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* --- MOBILE NAV --- */
+        .mobile-bottom-nav {
+            display: none;
+            flex-shrink: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-light);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .mobile-bottom-nav ul {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+            padding: 0.5rem 0;
+        }
+
+        .mobile-bottom-nav a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            padding: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .mobile-bottom-nav a.active {
+            color: var(--primary);
+        }
+
+        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
-            }
-
-            .messages-container {
-                max-height: 400px;
-            }
-
-            .message-content {
-                max-width: 85%;
-            }
+            .nav-menu, .language-selector { display: none; }
+            .mobile-bottom-nav { display: block; }
+            .main-chat-wrapper { padding: 1rem 0 0 0; }
+            .chat-container { border-radius: var(--radius-lg) var(--radius-lg) 0 0; border: none; border-top: 1px solid var(--border-light); }
+            .floating-actions { bottom: 5rem; right: 1rem; }
+            .message { max-width: 90%; }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
+
+    <div class="offline-indicator" id="offlineIndicator">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 15.6l-5.3-5.3a1 1 0 010-1.4l5.3-5.3M15.4 8.4l5.3 5.3a1 1 0 010 1.4l-5.3 5.3"/></svg>
+        You are currently offline. Voice Help is still available via phone call.
+    </div>
+
+    <nav class="navbar" id="navbar">
         <div class="nav-container">
-            <div class="nav-logo">
-                <a href="/">🌾 AgroVision</a>
+            <div class="nav-logo brand-font">
+                <a href="/">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    AgroVision
+                </a>
             </div>
             <ul class="nav-menu">
-                <li><a href="/">Home</a></li>
-                <li><a href="/detect">Detect Disease</a></li>
-                <li><a href="/schemes">Govt Schemes</a></li>
-                <li><a href="/voice">Voice Help</a></li>
-                <li><a href="/chatbot" class="active">Chatbot</a></li>
+                <li><a href="/" data-lang="navHome">Home</a></li>
+                <li><a href="/detect" data-lang="navDetect">Detect Disease</a></li>
+                <li><a href="/schemes" data-lang="navSchemes">Govt Schemes</a></li>
+                <li><a href="/weather" data-lang="navWeather">Weather</a></li>
+                <li><a href="/voice" data-lang="navVoice">Voice Help</a></li>
+                <li><a href="/chatbot" class="active" data-lang="navChatbot">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+                    Chatbot
+                </a></li>
             </ul>
+            <div class="language-selector">
+                <select id="languageSelect" class="language-select" onchange="changeLanguage(this.value)" aria-label="Select Language">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="te">తెలుగు</option>
+                    <option value="ta">தமிழ்</option>
+                    <option value="kn">ಕನ್ನಡ</option>
+                    <option value="mr">मराठी</option>
+                </select>
+            </div>
         </div>
     </nav>
 
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>🤖 Agriculture Assistant</h1>
-            <p>Ask me anything about farming, crops, plant diseases, or government schemes</p>
-        </div>
+    <div class="main-chat-wrapper">
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="bot-avatar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+                </div>
+                <div class="chat-header-text">
+                    <h1 class="brand-font">Agriculture Assistant</h1>
+                    <p>Powered by Google Gemini AI</p>
+                </div>
+            </div>
 
-        <div class="info-banner">
-            💡 <strong>Note:</strong> I specialize in agriculture-related queries. Ask me about crops, farming practices, plant diseases, government schemes, soil health, irrigation, and more!
-        </div>
+            <div class="messages-container" id="messagesContainer">
+                <div class="info-banner">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>I specialize in agriculture. Ask me about crop management, diseases, government schemes, soil health, and more!</span>
+                </div>
 
-        <div class="messages-container" id="messagesContainer">
-            <div class="message bot">
-                <div>
-                    <div class="message-content">
-                        Hello! I'm your agriculture assistant. I can help you with:
-                        <br>• Plant disease identification and treatment
-                        <br>• Crop management and farming practices
-                        <br>• Government schemes and subsidies
-                        <br>• Soil health and irrigation advice
-                        <br>• Organic farming and fertilizers
-                        <br><br>What would you like to know?
+                <div class="suggestion-row" aria-label="Suggested questions">
+                    <button type="button" class="suggestion-chip" data-question="Which government schemes are useful for a small farmer with 2 acres?">Schemes for small farmers</button>
+                    <button type="button" class="suggestion-chip" data-question="My tomato leaves have brown spots. What should I do?">Tomato leaf spots</button>
+                    <button type="button" class="suggestion-chip" data-question="How should I improve soil health before sowing?">Improve soil health</button>
+                    <button type="button" class="suggestion-chip" data-question="What precautions should I take before spraying pesticide?">Pesticide safety</button>
+                </div>
+
+                <div class="message bot">
+                    <div class="message-bubble">
+                        Hello! I'm your AgroVision assistant. I can help you with:<br><br>
+                        • Plant disease identification and treatment<br>
+                        • Crop management and farming practices<br>
+                        • Government schemes and subsidies<br>
+                        • Soil health and irrigation advice<br><br>
+                        What would you like to know?
                     </div>
                     <div class="message-time">Just now</div>
                 </div>
             </div>
-        </div>
 
-        <div class="input-container">
-            <input 
-                type="text" 
-                id="userInput" 
-                placeholder="Ask about crops, diseases, schemes, or farming..."
-                autocomplete="off"
-            >
-            <button class="send-button" id="sendButton" onclick="sendMessage()">
-                <span>Send</span>
-                <span>➤</span>
-            </button>
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="userInput" 
+                        placeholder="Ask about crops, diseases, or schemes..."
+                        autocomplete="off"
+                    >
+                </div>
+                <button class="send-button" id="sendButton" onclick="sendMessage()" title="Send Message">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: -2px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
         </div>
     </div>
 
+    <div class="floating-actions">
+        <button class="float-btn" id="themeToggle" title="Toggle Theme">
+            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+    </div>
+
+    <nav class="mobile-bottom-nav">
+        <ul>
+            <li><a href="/">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Home
+            </a></li>
+            <li><a href="/detect">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Detect
+            </a></li>
+            <li><a href="/schemes">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+                Schemes
+            </a></li>
+            <li><a href="/chatbot" class="active">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+                Chat
+            </a></li>
+        </ul>
+    </nav>
+
     <script>
+        // --- Theme Toggling Logic ---
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const sunIcon = document.querySelector('.sun-icon');
+        const moonIcon = document.querySelector('.moon-icon');
+        const htmlElement = document.documentElement;
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            } else {
+                htmlElement.removeAttribute('data-theme');
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+            localStorage.setItem('agrovision-theme', theme);
+        }
+
+        const savedTheme = localStorage.getItem('agrovision-theme') || 'light';
+        setTheme(savedTheme);
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            setTheme(currentTheme);
+        });
+
+        // --- Offline Detection ---
+        window.addEventListener('offline', () => document.getElementById('offlineIndicator').classList.add('show'));
+        window.addEventListener('online', () => document.getElementById('offlineIndicator').classList.remove('show'));
+
+        // --- Chatbot Logic ---
         const messagesContainer = document.getElementById('messagesContainer');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
 
-        // Allow Enter key to send message
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        function selectedLanguageName() {
+            const lang = localStorage.getItem('selectedLanguage') || document.getElementById('languageSelect')?.value || 'en';
+            return window.AgroVisionTranslate?.languageName ? window.AgroVisionTranslate.languageName(lang) : lang;
+        }
+
+        // Simple safe Markdown Parser (Handles **bold**, bullets, and line breaks from Gemini)
+        function formatMarkdown(text) {
+            const lines = escapeHtml(text).split(/\r?\n/);
+            let html = '';
+            let inList = false;
+
+            lines.forEach((line) => {
+                const trimmed = line.trim();
+                const bullet = trimmed.match(/^[-*]\s+(.+)$/);
+                if (bullet) {
+                    if (!inList) {
+                        html += '<ul>';
+                        inList = true;
+                    }
+                    html += `<li>${bullet[1].replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>`;
+                    return;
+                }
+                if (inList) {
+                    html += '</ul>';
+                    inList = false;
+                }
+                if (trimmed) {
+                    html += `${trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}<br>`;
+                }
+            });
+
+            if (inList) html += '</ul>';
+            return html || escapeHtml(text);
+        }
+
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -342,99 +712,102 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
             
-            const time = new Date().toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
+            const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const formattedText = isUser ? escapeHtml(text) : formatMarkdown(text);
             
             messageDiv.innerHTML = `
-                <div>
-                    <div class="message-content">${text}</div>
-                    <div class="message-time">${time}</div>
-                </div>
+                <div class="message-bubble">${formattedText}</div>
+                <div class="message-time">${time}</div>
             `;
             
             messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
+            scrollToBottom();
             return messageDiv;
         }
+
+        document.querySelectorAll('.suggestion-chip').forEach((chip) => {
+            chip.addEventListener('click', () => {
+                userInput.value = chip.dataset.question || chip.textContent.trim();
+                sendMessage();
+            });
+        });
 
         function showTypingIndicator() {
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message bot';
             typingDiv.id = 'typingIndicator';
             typingDiv.innerHTML = `
-                <div>
-                    <div class="message-content">
-                        <div class="typing-indicator">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                        </div>
+                <div class="message-bubble">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
                     </div>
                 </div>
             `;
             messagesContainer.appendChild(typingDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            scrollToBottom();
         }
 
         function removeTypingIndicator() {
             const indicator = document.getElementById('typingIndicator');
-            if (indicator) {
-                indicator.remove();
-            }
+            if (indicator) indicator.remove();
+        }
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         async function sendMessage() {
             const message = userInput.value.trim();
-            
-            if (!message) {
-                return;
-            }
+            if (!message) return;
 
-            // Add user message
             addMessage(message, true);
             userInput.value = '';
+            
+            // UI Loading State
             sendButton.disabled = true;
-            sendButton.innerHTML = '<span>Sending...</span>';
-
-            // Show typing indicator
+            sendButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>';
             showTypingIndicator();
 
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: message })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        target_language: selectedLanguageName()
+                    })
                 });
 
                 const data = await response.json();
-
                 removeTypingIndicator();
 
-                if (response.ok) {
-                    // Add bot response
-                    addMessage(data.response, false);
-                } else {
-                    // Show error
-                    addMessage('Sorry, I encountered an error. Please try again.', false);
-                }
+                const reply = data.response || data.error || 'Sorry, I encountered an error. Please try again.';
+                addMessage(reply, false);
             } catch (error) {
                 removeTypingIndicator();
-                addMessage('Sorry, I\'m having trouble connecting. Please check your internet connection and try again.', false);
+                addMessage('Sorry, I am having trouble connecting to the network. Please check your connection and try again.', false);
                 console.error('Error:', error);
             } finally {
                 sendButton.disabled = false;
-                sendButton.innerHTML = '<span>Send</span><span>➤</span>';
+                // Restore Send Icon
+                sendButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: -2px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
                 userInput.focus();
             }
         }
 
+        // Add spinner CSS dynamically
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes spin { 100% { transform: rotate(360deg); } } .spin { animation: spin 2s linear infinite; }`;
+        document.head.appendChild(style);
+
         // Focus input on load
-        userInput.focus();
+        window.addEventListener('DOMContentLoaded', () => {
+            userInput.focus();
+        });
     </script>
+    <script src="/static/js/translate.js"></script>
+    <script src="/static/js/lang.js"></script>
 </body>
 </html>

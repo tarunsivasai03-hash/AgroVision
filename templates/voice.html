@@ -7,167 +7,339 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        /* --- CSS VARIABLES (Consistent) --- */
+        /* --- GLOBAL DESIGN SYSTEM VARIABLES --- */
         :root {
-            --primary: #2ecc71;
-            --primary-dark: #27ae60;
-            --secondary: #2c3e50;
-            --accent: #9b59b6;
-            --text-dark: #2d3436;
-            --text-light: #636e72;
-            --bg-light: #f9fbfd;
-            --shadow: 0 10px 30px rgba(0,0,0,0.08);
-            --radius: 16px;
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-chat-user: var(--primary);
+            --bg-chat-bot: #f1f5f9;
+            
+            --text-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --text-chat-user: #ffffff;
+            
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --border-light: #e2e8f0;
+            
+            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.08);
+            --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-light); color: var(--text-dark); padding-bottom: 80px; }
+        /* Dark Mode Override */
+        html[data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-chat-bot: #334155;
+            
+            --text-heading: #f8fafc;
+            --text-body: #cbd5e1;
+            --text-muted: #94a3b8;
+            
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --border-light: #334155;
+            
+            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.3);
+        }
 
-        /* --- UTILS --- */
-        .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 50px; font-weight: 600; text-decoration: none; transition: 0.3s; border: none; cursor: pointer; }
-        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); }
-        .btn-primary:hover { transform: translateY(-3px); background: var(--primary-dark); }
-        .icon-lg { font-size: 2.5rem; margin-bottom: 1rem; }
+        /* --- BASE STYLES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-body); 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .brand-font { font-family: 'Outfit', sans-serif; color: var(--text-heading); }
+        a { text-decoration: none; color: inherit; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; width: 100%; }
+
+        /* --- BUTTONS --- */
+        .btn { 
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; 
+            padding: 0.875rem 1.75rem; border-radius: 999px; font-weight: 600; font-size: 0.95rem; 
+            transition: var(--transition); border: none; cursor: pointer; 
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary { 
+            background: var(--primary); color: white; 
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); 
+        }
+        .btn-primary:hover:not(:disabled) { 
+            transform: translateY(-2px); background: var(--primary-dark); 
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        /* --- OFFLINE INDICATOR --- */
+        .offline-indicator {
+            background-color: #ef4444; color: white; text-align: center;
+            padding: 0.75rem; font-size: 0.875rem; font-weight: 500; display: none;
+        }
+        .offline-indicator.show { display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
 
         /* --- NAVBAR --- */
-        .navbar { background: white; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #eee; padding: 1rem 0; }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
-        .nav-logo a { font-family: 'Roboto Slab', serif; font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); text-decoration: none; }
-        .nav-menu { display: flex; gap: 2rem; list-style: none; }
-        .nav-menu a { text-decoration: none; color: var(--text-dark); font-weight: 500; }
-        .nav-menu a.active { color: var(--primary); font-weight: 700; }
+        .navbar {
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; padding: 1rem 0;
+            transition: var(--transition);
+        }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; }
+        .nav-logo a { font-size: 1.5rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+        .nav-menu { display: flex; list-style: none; gap: 2rem; align-items: center; }
+        .nav-menu a { font-weight: 500; color: var(--text-muted); transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
+        .nav-menu a:hover, .nav-menu a.active { color: var(--primary); }
+        .language-selector select {
+            padding: 0.5rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);
+            background: var(--bg-surface); color: var(--text-body); font-family: 'Inter', sans-serif; cursor: pointer; outline: none;
+        }
 
         /* --- HERO SECTION --- */
         .voice-hero {
-            background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
-            color: white; padding: 4rem 1.5rem; text-align: center;
-            border-radius: 0 0 50% 50% / 20px; margin-bottom: 3rem;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white; padding: 5rem 1.5rem 7rem; text-align: center;
+            position: relative;
         }
-        .voice-hero h1 { font-family: 'Roboto Slab', serif; font-size: 2.5rem; margin-bottom: 1rem; }
+        .voice-hero h1 { font-size: 3rem; margin-bottom: 1rem; line-height: 1.2; color: white; }
+        .voice-hero p { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; color: white; }
         
         /* --- HELPLINE CARD --- */
         .helpline-card {
-            background: white; max-width: 600px; margin: -50px auto 3rem;
-            padding: 2rem; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-            text-align: center; position: relative; border: 1px solid rgba(0,0,0,0.05);
+            background: var(--bg-surface); max-width: 600px; margin: -80px auto 4rem;
+            padding: 2.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft);
+            text-align: center; position: relative; border: 1px solid var(--border-light);
+            z-index: 10; transition: var(--transition);
         }
         .pulse-ring {
-            position: absolute; width: 100px; height: 100px; background: rgba(46, 204, 113, 0.2);
-            border-radius: 50%; top: -20px; left: 50%; transform: translateX(-50%);
-            z-index: 0; animation: pulse 2s infinite;
+            position: absolute; width: 100px; height: 100px; background: rgba(16, 185, 129, 0.2);
+            border-radius: 50%; top: -30px; left: 50%; transform: translateX(-50%);
+            z-index: 0; animation: pulse 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
         }
         .phone-icon-wrapper {
-            width: 60px; height: 60px; background: var(--primary); color: white;
+            width: 64px; height: 64px; background: var(--primary); color: white;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; margin: -50px auto 1rem; position: relative; z-index: 1;
+            margin: -50px auto 1.5rem; position: relative; z-index: 1;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
         }
-        .phone-display {
-            font-size: 2.5rem; font-weight: 800; color: var(--text-dark);
-            margin: 1rem 0; letter-spacing: 1px;
+        .phone-display { 
+            font-size: 2.5rem; font-weight: 700; color: var(--text-heading); 
+            font-family: 'Outfit', sans-serif; margin: 1rem 0; letter-spacing: 1px; 
         }
-        @keyframes pulse { 0% { transform: translateX(-50%) scale(0.8); opacity: 1; } 100% { transform: translateX(-50%) scale(1.5); opacity: 0; } }
+        
+        @keyframes pulse { 
+            0% { transform: translateX(-50%) scale(0.8); opacity: 1; } 
+            100% { transform: translateX(-50%) scale(1.6); opacity: 0; } 
+        }
 
         /* --- DEMO SIMULATOR --- */
-        .demo-section { background: #fff; padding: 3rem 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 3rem; display: flex; gap: 2rem; align-items: center; }
+        .demo-section { 
+            background: var(--bg-surface); padding: 3.5rem; border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow-soft); border: 1px solid var(--border-light);
+            margin-bottom: 5rem; display: flex; gap: 4rem; align-items: center; 
+            transition: var(--transition);
+        }
         .demo-text { flex: 1; }
+        .demo-text h2 { font-size: 2rem; margin-bottom: 1rem; }
+        .demo-text p { font-size: 1.05rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem; }
+        
+        /* Modern Phone Mockup */
         .phone-mockup {
-            flex: 0 0 300px; background: #333; border-radius: 30px; padding: 15px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2); border: 4px solid #555;
+            flex: 0 0 300px; background: #0f172a; border-radius: 36px; padding: 10px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); border: 2px solid #334155;
+            position: relative; margin: 0 auto;
+        }
+        .phone-notch {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            width: 100px; height: 20px; background: #0f172a; border-radius: 0 0 14px 14px; z-index: 5;
         }
         .screen {
-            background: #f0f2f5; height: 400px; border-radius: 20px; overflow: hidden;
-            display: flex; flex-direction: column;
+            background: var(--bg-body); height: 500px; border-radius: 28px; overflow: hidden;
+            display: flex; flex-direction: column; position: relative; transition: var(--transition);
         }
-        .screen-header { background: var(--primary); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; }
-        .chat-area { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 0.9rem; line-height: 1.4; }
-        .msg-bot { background: white; align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .msg-user { background: var(--secondary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .screen-footer { padding: 10px; background: white; text-align: center; border-top: 1px solid #eee; }
-        .audio-wave { display: flex; gap: 3px; justify-content: center; height: 20px; align-items: center; }
-        .bar { width: 4px; background: var(--primary); animation: wave 1s infinite ease-in-out; }
+        .screen-header { 
+            background: var(--bg-surface); border-bottom: 1px solid var(--border-light);
+            padding: 35px 20px 15px; font-weight: 600; display: flex; justify-content: space-between; 
+            font-size: 0.85rem; color: var(--text-heading); transition: var(--transition);
+        }
+        .chat-area { 
+            flex: 1; padding: 20px 15px; display: flex; flex-direction: column; 
+            gap: 12px; overflow-y: auto; scroll-behavior: smooth;
+        }
+        .chat-area::-webkit-scrollbar { width: 4px; }
+        .chat-area::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 10px; }
+
+        .msg { padding: 12px 16px; max-width: 85%; font-size: 0.9rem; line-height: 1.4; position: relative; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .msg-bot { 
+            background: var(--bg-chat-bot); color: var(--text-body); align-self: flex-start; 
+            border-radius: 16px 16px 16px 4px; 
+        }
+        .msg-user { 
+            background: var(--bg-chat-user); color: var(--text-chat-user); align-self: flex-end; 
+            border-radius: 16px 16px 4px 16px; 
+        }
+        
+        .screen-footer { 
+            padding: 15px; background: var(--bg-surface); border-top: 1px solid var(--border-light); 
+            display: flex; align-items: center; justify-content: center; height: 70px; transition: var(--transition);
+        }
+        .audio-wave { display: flex; gap: 4px; justify-content: center; height: 24px; align-items: center; transition: opacity 0.3s ease; }
+        .bar { width: 4px; border-radius: 2px; background: var(--primary); animation: wave 1s infinite ease-in-out; }
         .bar:nth-child(2) { animation-delay: 0.1s; }
         .bar:nth-child(3) { animation-delay: 0.2s; }
-        @keyframes wave { 0%, 100% { height: 5px; } 50% { height: 20px; } }
+        .bar:nth-child(4) { animation-delay: 0.3s; }
+        .bar:nth-child(5) { animation-delay: 0.4s; }
+        @keyframes wave { 0%, 100% { height: 6px; } 50% { height: 24px; } }
 
         /* --- TIMELINE --- */
-        .timeline { position: relative; max-width: 800px; margin: 0 auto 3rem; }
+        .section-title { text-align: center; margin-bottom: 3rem; font-size: 2rem; }
+        .timeline { position: relative; max-width: 800px; margin: 0 auto 5rem; }
         .timeline::before {
-            content: ''; position: absolute; left: 24px; top: 0; bottom: 0;
-            width: 2px; background: #e0e0e0;
+            content: ''; position: absolute; left: 28px; top: 20px; bottom: 20px;
+            width: 2px; background: var(--border-light); z-index: 0;
         }
-        .timeline-item { display: flex; gap: 2rem; margin-bottom: 2rem; position: relative; }
+        .timeline-item { display: flex; gap: 2rem; margin-bottom: 2.5rem; position: relative; z-index: 1; }
         .timeline-marker {
-            width: 50px; height: 50px; background: white; border: 2px solid var(--primary);
+            width: 58px; height: 58px; background: var(--bg-surface); border: 2px solid var(--primary);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; color: var(--primary); z-index: 1; flex-shrink: 0;
+            font-weight: 700; color: var(--primary); font-size: 1.25rem; font-family: 'Outfit', sans-serif;
+            flex-shrink: 0; box-shadow: 0 0 0 8px var(--bg-body); transition: var(--transition);
         }
         .timeline-content {
-            background: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); flex: 1;
-            transition: 0.3s;
+            background: var(--bg-surface); padding: 1.75rem; border-radius: var(--radius-md); 
+            box-shadow: var(--shadow-soft); flex: 1; border: 1px solid var(--border-light);
+            transition: var(--transition);
         }
-        .timeline-content:hover { transform: translateX(5px); border-left: 4px solid var(--primary); }
+        .timeline-content:hover { transform: translateX(5px); border-color: var(--primary); }
+        .timeline-content h3 { margin-bottom: 0.5rem; font-size: 1.2rem; }
+        .timeline-item:hover .timeline-marker { background: var(--primary); color: white; }
 
         /* --- GRID --- */
-        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); text-align: center; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 4rem; }
+        .card { 
+            background: var(--bg-surface); padding: 2rem; border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow-soft); border: 1px solid var(--border-light); text-align: center;
+            transition: var(--transition);
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-float); border-color: var(--primary); }
+        .icon-lg { 
+            width: 56px; height: 56px; border-radius: 16px; background: var(--primary-light); color: var(--primary-dark);
+            display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.2rem;
+        }
+        html[data-theme="dark"] .icon-lg { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
+        .card h3 { margin-bottom: 0.75rem; font-size: 1.2rem; }
         
         /* --- LANGUAGES --- */
-        .lang-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .lang-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-bottom: 4rem;}
         .lang-badge {
-            background: white; border: 1px solid #eee; padding: 8px 16px;
-            border-radius: 20px; font-weight: 500; color: #555;
+            background: var(--bg-surface); border: 1px solid var(--border-light); padding: 0.5rem 1.25rem;
+            border-radius: 999px; font-weight: 500; color: var(--text-muted); transition: var(--transition); font-size: 0.9rem;
         }
+        .lang-badge:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+        html[data-theme="dark"] .lang-badge:hover { background: rgba(16, 185, 129, 0.15); }
 
-        /* --- MOBILE NAV --- */
-        .mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #eee; z-index: 999; padding: 10px 0; }
-        .mobile-bottom-nav ul { display: flex; justify-content: space-around; list-style: none; }
-        .mobile-bottom-nav a { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #999; font-size: 0.75rem; }
+        /* --- FLOATING ACTIONS --- */
+        .floating-actions { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 1rem; z-index: 90; }
+        .float-btn {
+            width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border-light);
+            background: var(--bg-surface); color: var(--text-heading); display: flex; justify-content: center; align-items: center;
+            cursor: pointer; box-shadow: var(--shadow-float); transition: var(--transition);
+        }
+        .float-btn:hover { transform: translateY(-3px); border-color: var(--primary); color: var(--primary); }
+
+        /* --- MOBILE NAV & FOOTER --- */
+        .mobile-bottom-nav {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-light); z-index: 99; padding-bottom: env(safe-area-inset-bottom);
+        }
+        .mobile-bottom-nav ul { display: flex; justify-content: space-around; list-style: none; padding: 0.5rem 0; }
+        .mobile-bottom-nav a { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); padding: 0.5rem; transition: var(--transition); }
         .mobile-bottom-nav a.active { color: var(--primary); }
 
+        .footer { background: var(--bg-surface); border-top: 1px solid var(--border-light); padding: 2rem 0; margin-top: auto; text-align: center; color: var(--text-muted); font-size: 0.875rem; }
+
+        @media (max-width: 900px) {
+            .demo-section { flex-direction: column; padding: 2.5rem 1.5rem; gap: 3rem;}
+            .demo-text { text-align: center; }
+        }
         @media (max-width: 768px) {
-            .nav-menu { display: none; }
+            .nav-menu, .language-selector { display: none; }
             .mobile-bottom-nav { display: block; }
-            .demo-section { flex-direction: column; }
             .phone-mockup { width: 100%; max-width: 320px; }
-            .voice-hero { border-radius: 0; padding-bottom: 5rem; }
-            .helpline-card { margin-top: -60px; width: 90%; }
+            .voice-hero { padding: 4rem 1.5rem 6rem; }
+            .voice-hero h1 { font-size: 2.2rem; }
+            .helpline-card { margin-top: -50px; padding: 2rem 1.5rem; width: 92%; }
+            .phone-display { font-size: 2rem; }
+            .timeline::before { left: 20px; }
+            .timeline-marker { width: 44px; height: 44px; font-size: 1rem; }
+            .timeline-item { gap: 1rem; }
+            .floating-actions { bottom: 5rem; right: 1rem; }
+            .container { padding-bottom: 4rem; }
         }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <a href="/">🌾 <span data-lang="appName">AgroVision</span></a>
+    <div class="offline-indicator" id="offlineIndicator">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 15.6l-5.3-5.3a1 1 0 010-1.4l5.3-5.3M15.4 8.4l5.3 5.3a1 1 0 010 1.4l-5.3 5.3"/></svg>
+        You are currently offline. Voice Help is still available via phone call.
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container container">
+            <div class="nav-logo brand-font">
+                <a href="/">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <span data-lang="appName">AgroVision</span>
+                </a>
             </div>
             <ul class="nav-menu">
                 <li><a href="/" data-lang="navHome">Home</a></li>
                 <li><a href="/detect" data-lang="navDetect">Detect Disease</a></li>
                 <li><a href="/schemes" data-lang="navSchemes">Govt Schemes</a></li>
+                <li><a href="/weather" data-lang="navWeather">Weather</a></li>
                 <li><a href="/voice" class="active" data-lang="navVoice">Voice Help</a></li>
-                <li><a href="/chatbot">🤖 Chatbot</a></li>
+                <li><a href="/chatbot" data-lang="navChatbot">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+                    Chatbot
+                </a></li>
             </ul>
-            <select id="languageSelect" onchange="changeLanguage(this.value)" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer;">
-                <option value="en">English</option>
-                <option value="te">తెలుగు</option>
-                <option value="hi">हिन्दी</option>
-                <option value="ta">தமிழ்</option>
-                <option value="kn">ಕನ್ನಡ</option>
-                <option value="mr">मराठी</option>
-            </select>
+            <div class="language-selector">
+                <select id="languageSelect" class="language-select" onchange="changeLanguage(this.value)" aria-label="Select Language">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="te">తెలుగు</option>
+                    <option value="ta">தமிழ்</option>
+                    <option value="kn">ಕನ್ನಡ</option>
+                    <option value="mr">मराठी</option>
+                </select>
+            </div>
         </div>
     </nav>
 
     <header class="voice-hero">
         <div class="container">
-            <h1 data-lang="voiceTitle">🎤 Voice Assistance</h1>
-            <p data-lang="voiceSubtitle">No Smartphone? No Internet? No Problem.</p>
+            <h1 class="brand-font" data-lang="voiceTitle">Voice Assistance</h1>
+            <p data-lang="voiceSubtitle">No Smartphone? No Internet? No Problem. Get expert AI farming advice through a simple phone call.</p>
         </div>
     </header>
 
@@ -175,104 +347,123 @@
         
         <div class="helpline-card">
             <div class="pulse-ring"></div>
-            <div class="phone-icon-wrapper">📞</div>
-            <h2 data-lang="tollFreeTitle">Toll-Free Helpline</h2>
+            <div class="phone-icon-wrapper">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+            <h2 class="brand-font" data-lang="tollFreeTitle">Toll-Free Helpline</h2>
             <div class="phone-display"><a href="tel:18001234567" style="color:inherit; text-decoration:none;">1800-123-4567</a></div>
-            <p style="color: #666; margin-bottom: 1.5rem;" data-lang="helplineAvailability">Available 24/7 • Multi-lingual Support</p>
-            <a href="tel:18001234567" class="btn btn-primary" style="width: 100%; max-width: 250px;" data-lang="tapToCall">
+            <p style="color: var(--text-muted); margin-bottom: 2rem;" data-lang="helplineAvailability">Available 24/7 • Multi-lingual Support</p>
+            <a href="tel:18001234567" class="btn btn-primary" style="width: 100%; max-width: 280px; margin: 0 auto;" data-lang="tapToCall">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                 Tap to Call Now
             </a>
         </div>
 
         <section class="demo-section">
             <div class="demo-text">
-                <h2 style="margin-bottom: 1rem;" data-lang="ivrExperience">Experience the IVR System</h2>
-                <p style="line-height: 1.6; color: #555; margin-bottom: 1.5rem;" data-lang="ivrDescription">
-                    Not sure how it works? Try our interactive simulator. 
-                    Our smart voice bot guides you through the process step-by-step in your local language.
+                <h2 class="brand-font" data-lang="ivrExperience">Experience the Smart IVR</h2>
+                <p data-lang="ivrDescription">
+                    Not sure how it works? Try our interactive simulator. Our smart voice bot listens to your crop issues and guides you through the diagnosis step-by-step in your local language.
                 </p>
-                <button onclick="startDemo()" class="btn btn-primary" id="demoBtn" data-lang="playDemo">▶️ Play Demo</button>
+                <button onclick="startDemo()" class="btn btn-primary" id="demoBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span data-lang="playDemo">Play Demo</span>
+                </button>
             </div>
+            
             <div class="phone-mockup">
+                <div class="phone-notch"></div>
                 <div class="screen">
                     <div class="screen-header">
-                        <span>AgroVision Support</span>
-                        <span>00:00</span>
+                        <span>14:00</span>
+                        <div style="display:flex; gap: 5px; align-items:center;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <span>Calling...</span>
+                        </div>
                     </div>
                     <div class="chat-area" id="chatArea">
-                        <div class="msg msg-bot" data-lang="welcomeMsg">Hello! Welcome to AgroVision helpline.</div>
-                        <div style="text-align: center; color: #999; font-size: 0.8rem; margin-top: auto;" id="statusText" data-lang="tapPlayDemo">Tap 'Play Demo'</div>
+                        <div class="msg msg-bot" data-lang="welcomeMsg">Welcome to AgroVision Helpline. How can I assist you today?</div>
+                        <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: auto;" id="statusText" data-lang="tapPlayDemo">Tap 'Play Demo' to start simulation</div>
                     </div>
                     <div class="screen-footer">
                         <div class="audio-wave" id="audioWave" style="opacity: 0;">
-                            <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                            <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                        </div>
+                        <div id="micIcon" style="display: none; color: var(--primary);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <h2 style="text-align: center; margin-bottom: 2rem;" data-lang="howIvrWorks">How It Works</h2>
+        <h2 class="section-title brand-font" data-lang="howIvrWorks">How It Works</h2>
         <div class="timeline">
             <div class="timeline-item">
                 <div class="timeline-marker">1</div>
                 <div class="timeline-content">
-                    <h3 data-lang="ivrStep1Title">Dial the Number</h3>
-                    <p style="color:#666; margin-top: 5px;" data-lang="ivrStep1Desc">Call 1800-123-4567 from any landline or mobile phone. No internet required.</p>
+                    <h3 class="brand-font" data-lang="ivrStep1Title">Dial the Number</h3>
+                    <p style="color:var(--text-muted);" data-lang="ivrStep1Desc">Call 1800-123-4567 from any landline or basic mobile phone. No internet required.</p>
                 </div>
             </div>
             <div class="timeline-item">
                 <div class="timeline-marker">2</div>
                 <div class="timeline-content">
-                    <h3 data-lang="ivrStep2Title">Select Language</h3>
-                    <p style="color:#666; margin-top: 5px;" data-lang="ivrStep2Desc">"Press 1 for English, 2 for Hindi, 3 for Telugu..." Choose your comfortable language.</p>
+                    <h3 class="brand-font" data-lang="ivrStep2Title">Select Language</h3>
+                    <p style="color:var(--text-muted);" data-lang="ivrStep2Desc">"Press 1 for English, 2 for Hindi, 3 for Telugu..." Choose your comfortable language for communication.</p>
                 </div>
             </div>
             <div class="timeline-item">
                 <div class="timeline-marker">3</div>
                 <div class="timeline-content">
-                    <h3 data-lang="ivrStep3Title">Describe Symptoms</h3>
-                    <p style="color:#666; margin-top: 5px;" data-lang="ivrStep3Desc">Speak clearly about the crop issue (e.g., "Brown spots on rice leaves").</p>
+                    <h3 class="brand-font" data-lang="ivrStep3Title">Describe Symptoms</h3>
+                    <p style="color:var(--text-muted);" data-lang="ivrStep3Desc">Speak clearly about the crop issue (e.g., "My rice leaves have brown circular spots").</p>
                 </div>
             </div>
             <div class="timeline-item">
                 <div class="timeline-marker">4</div>
                 <div class="timeline-content">
-                    <h3 data-lang="ivrStep4Title">Get Solution</h3>
-                    <p style="color:#666; margin-top: 5px;" data-lang="ivrStep4Desc">Our AI identifies the problem and dictates the remedy instantly.</p>
+                    <h3 class="brand-font" data-lang="ivrStep4Title">Get Instant Solution</h3>
+                    <p style="color:var(--text-muted);" data-lang="ivrStep4Desc">Our AI processes your voice, identifies the problem, and dictates the remedy instantly over the call.</p>
                 </div>
             </div>
             <div class="timeline-item">
                 <div class="timeline-marker">5</div>
                 <div class="timeline-content">
-                    <h3 data-lang="ivrStep5Title">SMS Confirmation</h3>
-                    <p style="color:#666; margin-top: 5px;" data-lang="ivrStep5Desc">You will receive an SMS with the medicine name and dosage instructions.</p>
+                    <h3 class="brand-font" data-lang="ivrStep5Title">SMS Confirmation</h3>
+                    <p style="color:var(--text-muted);" data-lang="ivrStep5Desc">Hang up and receive a free SMS with the exact medicine name, dosage, and safety instructions.</p>
                 </div>
             </div>
         </div>
 
-        <h2 style="text-align: center; margin-bottom: 2rem;" data-lang="servicesOffered">Services Offered</h2>
+        <h2 class="section-title brand-font" data-lang="servicesOffered">Services Offered via Voice</h2>
         <div class="grid-3">
             <div class="card">
-                <div class="icon-lg">🍃</div>
-                <h3 data-lang="serviceDiseaseTitle">Disease Diagnosis</h3>
-                <p style="color:#666;" data-lang="serviceDiseaseDesc">Identify crop diseases by describing symptoms.</p>
+                <div class="icon-lg">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                </div>
+                <h3 class="brand-font" data-lang="serviceDiseaseTitle">Disease Diagnosis</h3>
+                <p style="color:var(--text-muted);" data-lang="serviceDiseaseDesc">Identify crop diseases by simply describing the visible symptoms.</p>
             </div>
             <div class="card">
-                <div class="icon-lg">🏛️</div>
-                <h3 data-lang="serviceSchemeTitle">Scheme Info</h3>
-                <p style="color:#666;" data-lang="serviceSchemeDesc">Get details on latest government subsidies.</p>
+                <div class="icon-lg">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+                </div>
+                <h3 class="brand-font" data-lang="serviceSchemeTitle">Govt Scheme Info</h3>
+                <p style="color:var(--text-muted);" data-lang="serviceSchemeDesc">Get details on the latest government subsidies and financial loans.</p>
             </div>
             <div class="card">
-                <div class="icon-lg">🌦️</div>
-                <h3 data-lang="serviceWeatherTitle">Weather Alert</h3>
-                <p style="color:#666;" data-lang="serviceWeatherDesc">Get 3-day forecast warnings for your area.</p>
+                <div class="icon-lg">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                </div>
+                <h3 class="brand-font" data-lang="serviceWeatherTitle">Weather Alerts</h3>
+                <p style="color:var(--text-muted);" data-lang="serviceWeatherDesc">Receive accurate 3-day forecast warnings and rainfall predictions for your area.</p>
             </div>
         </div>
 
-        <div style="text-align: center; margin-bottom: 4rem;">
-            <h3 data-lang="supportedLanguages">Supported Languages</h3>
-            <div class="lang-grid" style="margin-top: 1rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h3 class="brand-font" style="font-size: 1.5rem; margin-bottom: 1.5rem;" data-lang="supportedLanguages">Supported Languages</h3>
+            <div class="lang-grid">
                 <span class="lang-badge">English</span>
                 <span class="lang-badge">हिन्दी (Hindi)</span>
                 <span class="lang-badge">తెలుగు (Telugu)</span>
@@ -284,23 +475,79 @@
 
     </main>
 
+    <div class="floating-actions">
+        <button class="float-btn" id="themeToggle" title="Toggle Theme">
+            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="float-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Scroll to Top">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
+    </div>
+
     <nav class="mobile-bottom-nav">
         <ul>
-            <li><a href="/"><span style="font-size:1.4rem">🏠</span><span data-lang="navHome">Home</span></a></li>
-            <li><a href="/detect"><span style="font-size:1.4rem">📸</span><span data-lang="navDetect">Detect</span></a></li>
-            <li><a href="/schemes"><span style="font-size:1.4rem">🏛️</span><span data-lang="navSchemes">Schemes</span></a></li>
-            <li><a href="/voice" class="active"><span style="font-size:1.4rem">🎤</span><span data-lang="navVoice">Help</span></a></li>
+            <li><a href="/">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Home
+            </a></li>
+            <li><a href="/detect">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Detect
+            </a></li>
+            <li><a href="/schemes">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+                Schemes
+            </a></li>
+            <li><a href="/voice" class="active">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                Voice
+            </a></li>
         </ul>
     </nav>
 
-    <footer style="text-align: center; padding: 2rem; color: #888; background: white; border-top: 1px solid #eee;">
-        <p data-lang="footerCopyright">&copy; 2026 AgroVision. All rights reserved.</p>
+    <footer class="footer">
+        <div class="container">
+            <p data-lang="footerCopyright">&copy; 2026 AgroVision. Information sourced from official Government portals.</p>
+        </div>
     </footer>
 
     <script>
-        // IVR Simulator Logic
+        // --- Theme Toggling Logic ---
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const sunIcon = document.querySelector('.sun-icon');
+        const moonIcon = document.querySelector('.moon-icon');
+        const htmlElement = document.documentElement;
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            } else {
+                htmlElement.removeAttribute('data-theme');
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+            localStorage.setItem('agrovision-theme', theme);
+        }
+
+        const savedTheme = localStorage.getItem('agrovision-theme') || 'light';
+        setTheme(savedTheme);
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            setTheme(currentTheme);
+        });
+
+        // --- Offline Detection ---
+        window.addEventListener('offline', () => document.getElementById('offlineIndicator').classList.add('show'));
+        window.addEventListener('online', () => document.getElementById('offlineIndicator').classList.remove('show'));
+
+        // --- IVR Simulator Logic ---
         const chatArea = document.getElementById('chatArea');
         const audioWave = document.getElementById('audioWave');
+        const micIcon = document.getElementById('micIcon');
         const statusText = document.getElementById('statusText');
         const demoBtn = document.getElementById('demoBtn');
         let isPlaying = false;
@@ -310,28 +557,34 @@
             isPlaying = true;
             demoBtn.disabled = true;
             chatArea.innerHTML = '';
-            statusText.style.display = 'none';
+            if(statusText) statusText.style.display = 'none';
 
             // Sequence of interaction
             await botSpeak("Welcome to AgroVision. Press 1 for English.");
             await delay(1000);
             await userAction("1");
             await botSpeak("Please describe your crop problem after the beep.");
-            await delay(1000);
-            await userAction("My rice leaves have yellow spots.");
-            await botSpeak("Analyzing... It sounds like 'Brown Spot'. Apply Mancozeb spray.");
-            await botSpeak("Sending details via SMS. Thank you!");
+            await delay(800);
+            
+            // Show mic icon indicating user is speaking
+            audioWave.style.display = 'none';
+            micIcon.style.display = 'block';
+            await userAction("My rice leaves have brown circular spots.");
+            micIcon.style.display = 'none';
+            audioWave.style.display = 'flex';
+            
+            await botSpeak("Analyzing... It sounds like 'Brown Spot' disease. Apply Mancozeb spray immediately.");
+            await botSpeak("I am sending the exact medicine details and dosage via SMS. Thank you!");
             
             isPlaying = false;
             demoBtn.disabled = false;
-            demoBtn.textContent = "↺ Replay Demo";
+            demoBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/></svg> <span>Replay Demo</span>';
         }
 
         function botSpeak(text) {
             return new Promise(resolve => {
                 audioWave.style.opacity = 1; // Show wave
                 
-                // Add message to UI
                 setTimeout(() => {
                     const div = document.createElement('div');
                     div.className = 'msg msg-bot';
@@ -339,15 +592,9 @@
                     chatArea.appendChild(div);
                     chatArea.scrollTop = chatArea.scrollHeight;
                     
-                    // Basic Speech Synthesis (Optional, remove if annoying)
-                    if('speechSynthesis' in window) {
-                        const utter = new SpeechSynthesisUtterance(text);
-                        window.speechSynthesis.speak(utter);
-                    }
-                    
                     audioWave.style.opacity = 0; // Hide wave
                     resolve();
-                }, 1500);
+                }, 1800);
             });
         }
 
@@ -367,10 +614,7 @@
         }
     </script>
     
-    <!-- Language Translation Module -->
+    <script src="/static/js/translate.js"></script>
     <script src="/static/js/lang.js"></script>
-    
-    <!-- Chatbot Widget -->
-    <script src="/static/js/chatbot.js"></script>
 </body>
 </html>

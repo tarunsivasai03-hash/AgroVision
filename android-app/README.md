@@ -1,29 +1,21 @@
 # AgroVision Android App (Offline AI)
 
-This is a native Android application written in Kotlin that uses **TensorFlow Lite** to perform offline plant disease detection directly on the device.
+Native Kotlin app using **TensorFlow Lite** for on-device plant disease detection.
 
-## 🚀 Setup Instructions
+## Setup
 
-### 1. Get the TFLite Model
-The app requires a `plant_validity_model.tflite` file in the assets folder.
+1. Ensure `plant_disease_model.tflite` is in `app/src/main/assets/` (generated from the root `.h5` model).
+2. From the project root, convert the model if needed:
+   ```bash
+   python scripts/convert_to_tflite.py
+   ```
+3. Open `android-app` in Android Studio, sync Gradle, and run on a device or emulator.
 
-1.  Open the root `AgroVision` folder in a terminal.
-2.  Run the conversion script:
-    ```bash
-    python convert_to_tflite.py
-    ```
-    *(Ensure you have `tensorflow` installed given your requirements.txt)*
-3.  This generates `plant_validity_model.tflite`.
-4.  **Move** this file to:
-    `AgroVision\android-app\app\src\main\assets\`
+## Features
 
-### 2. Open in Android Studio
-1.  Open **Android Studio**.
-2.  Select **Open** and choose `AgroVision\android-app`.
-3.  Sync Gradle.
-4.  Run on an Emulator or Device.
+- **Offline** disease inference with `plant_disease_model.tflite` (112×112, 38 classes)
+- **Online AI chat** — calls the same Flask `/api/chat` + Gemini as the website (not keyword rules)
+- Photo picker and camera capture
+- Government schemes list, TTS, and multi-language UI (EN / HI / TE)
 
-## 📱 Features
-- **Offline Inference**: No internet connection required for detection.
-- **Photo Picker**: Modern Android photo picker support.
-- **Real-time Results**: Instant feedback using the local neural network.
+Chat requires the Flask server running on your PC and `GEMINI_API_KEY` in the project `.env` file.

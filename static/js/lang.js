@@ -550,8 +550,7 @@ const AgroVisionLanguage = (function() {
     // 2. CORE FUNCTIONS
     
     function setLanguage(lang) {
-        // Fallback to 'en' if lang doesn't exist
-        const selectedLang = translations[lang] ? lang : 'en';
+        const selectedLang = lang || 'en';
         
         // Save to storage
         localStorage.setItem('selectedLanguage', selectedLang);
@@ -561,11 +560,15 @@ const AgroVisionLanguage = (function() {
         
         // Update Desktop Selector UI
         const selector = document.getElementById('languageSelect');
-        if (selector) selector.value = selectedLang;
+        if (selector && Array.from(selector.options).some(option => option.value === selectedLang)) {
+            selector.value = selectedLang;
+        }
         
         // Update Mobile Selector UI
         const mobileSelector = document.getElementById('languageSelectMobile');
-        if (mobileSelector) mobileSelector.value = selectedLang;
+        if (mobileSelector && Array.from(mobileSelector.options).some(option => option.value === selectedLang)) {
+            mobileSelector.value = selectedLang;
+        }
 
         // Apply translations
         applyTranslations(selectedLang);
@@ -576,12 +579,13 @@ const AgroVisionLanguage = (function() {
 
     function applyTranslations(lang) {
         const elements = document.querySelectorAll('[data-lang]');
+        const langDict = translations[lang] || {};
         
         elements.forEach(element => {
             const key = element.getAttribute('data-lang');
             
             // Logic: Target Lang > English Fallback > Keep Original
-            const text = translations[lang][key] || translations['en'][key];
+            const text = langDict[key] || translations['en'][key];
             
             if (text) {
                 // Check if it's an input/textarea placeholder
@@ -618,7 +622,8 @@ const AgroVisionLanguage = (function() {
         setLanguage: setLanguage,
         get: (key) => {
             const lang = localStorage.getItem('selectedLanguage') || 'en';
-            return translations[lang][key] || translations['en'][key] || key;
+            const langDict = translations[lang] || {};
+            return langDict[key] || translations['en'][key] || key;
         }
     };
 

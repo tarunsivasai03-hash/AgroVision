@@ -411,7 +411,10 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({
+                    message: message,
+                    target_language: selectedLanguageName()
+                })
             });
 
             const data = await response.json();
@@ -420,26 +423,38 @@
             const typing = document.getElementById('chatbotTyping');
             if (typing) typing.remove();
 
-            if (response.ok) {
-                // Add bot response
-                const botMessageDiv = document.createElement('div');
-                botMessageDiv.className = 'chatbot-message bot';
-                botMessageDiv.innerHTML = `<div class="message-content">${escapeHtml(data.response)}</div>`;
-                messagesContainer.appendChild(botMessageDiv);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            } else {
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'chatbot-message bot';
-                errorDiv.innerHTML = '<div class="message-content">Sorry, I encountered an error. Please try again.</div>';
-                messagesContainer.appendChild(errorDiv);
-            }
+            const botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'chatbot-message bot';
+            const replyText = data.response || data.error || 'Sorry, I encountered an error. Please try again.';
+            botMessageDiv.innerHTML = `<div class="message-content">${formatBotMessage(replyText)}</div>`;
+            messagesContainer.appendChild(botMessageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
             const typing = document.getElementById('chatbotTyping');
             if (typing) typing.remove();
             
             const errorDiv = document.createElement('div');
             errorDiv.className = 'chatbot-message bot';
-            errorDiv.innerHTML = '<div class="message-content">Sorry, I\'m having trouble connecting. Please check your internet and try again.</div>';
+            
+            // Fallback response when API is unavailable
+            const fallbackResponse = `I apologize, but I'm temporarily unable to process your request. Here's some general farming advice:
+
+**Common Farming Practices:**
+- Monitor your crop regularly for early pest and disease detection
+- Maintain proper soil moisture through appropriate irrigation
+- Apply fertilizers based on soil testing results
+- Rotate crops annually to maintain soil health
+- Follow recommended pesticide safety guidelines
+
+**Government Support:**
+- Contact your local agriculture office for scheme eligibility
+- PM-KISAN offers ₹6,000/year for most farmers
+- Crop insurance schemes protect against weather damage
+- Subsidies available for equipment and seeds
+
+For specific advice, please try again or contact your local agriculture extension officer. 🌾`;
+            
+            errorDiv.innerHTML = `<div class="message-content">${formatBotMessage(fallbackResponse)}</div>`;
             messagesContainer.appendChild(errorDiv);
             console.error('Chatbot error:', error);
         } finally {
@@ -454,6 +469,17 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    function selectedLanguageName() {
+        const lang = localStorage.getItem('selectedLanguage') || document.getElementById('languageSelect')?.value || 'en';
+        return window.AgroVisionTranslate?.languageName ? window.AgroVisionTranslate.languageName(lang) : lang;
+    }
+
+    function formatBotMessage(text) {
+        return escapeHtml(text || '')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
     }
 
     // Initialize on page load

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_detect"
+        android:title="Detect"
+        android:icon="@android:drawable/ic_menu_camera" />
+    <item
+        android:id="@+id/nav_schemes"
+        android:title="Schemes"
+        android:icon="@android:drawable/ic_menu_agenda" />
+    <item
+        android:id="@+id/nav_voice"
+        android:title="Voice"
+        android:icon="@android:drawable/ic_btn_speak_now" />
+    <item
+        android:id="@+id/nav_chat"
+        android:title="Chat"
+        android:icon="@android:drawable/ic_dialog_email" />
+</menu>
