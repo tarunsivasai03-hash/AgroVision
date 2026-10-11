@@ -1,0 +1,321 @@
+/* ==========================================================================
+   AgroVision - Global Design System & Component Library
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. CSS VARIABLES & THEMING
+   -------------------------------------------------------------------------- */
+   :root {
+    /* Brand Colors */
+    --primary: #10b981;        /* Emerald Green */
+    --primary-dark: #059669;
+    --primary-light: #d1fae5;
+    
+    /* Semantic Colors */
+    --success: #22c55e;
+    --success-bg: #f0fdf4;
+    --warning: #f59e0b;
+    --warning-bg: #fffbeb;
+    --error: #ef4444;
+    --error-bg: #fef2f2;
+    --info: #3b82f6;
+    --info-bg: #eff6ff;
+
+    /* Light Theme (Default) */
+    --secondary: #0f172a;      /* Slate 900 (Headings) */
+    --text-dark: #334155;      /* Slate 700 (Body) */
+    --text-light: #64748b;     /* Slate 500 (Muted) */
+    
+    --bg-body: #f8fafc;        /* Slate 50 */
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f1f5f9;
+    
+    --border-color: #e2e8f0;
+    --glass-bg: rgba(255, 255, 255, 0.85);
+
+    /* Shadows & Depth */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    
+    /* Geometry */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --container-width: 1200px;
+}
+
+/* Dark Theme Override */
+[data-theme="dark"] {
+    --primary-light: #064e3b;
+    
+    --secondary: #f8fafc;
+    --text-dark: #e2e8f0;      
+    --text-light: #94a3b8;     
+    
+    --bg-body: #0f172a;        
+    --bg-surface: #1e293b;
+    --bg-surface-hover: #334155;
+    
+    --border-color: #334155;
+    --glass-bg: rgba(30, 41, 59, 0.85);
+
+    --success-bg: #052e16;
+    --warning-bg: #451a03;
+    --error-bg: #450a0a;
+    --info-bg: #172554;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   2. RESET & BASE
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6, .brand-font {
+    font-family: 'Outfit', sans-serif;
+    color: var(--secondary);
+    font-weight: 700;
+    line-height: 1.2;
+    transition: color 0.3s ease;
+}
+
+p { margin-bottom: 1rem; }
+a { text-decoration: none; color: inherit; transition: color 0.2s ease; }
+ul, ol { list-style: none; }
+img { max-width: 100%; height: auto; display: block; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-body); }
+::-webkit-scrollbar-thumb { background: var(--text-light); border-radius: 10px; opacity: 0.5; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dark); }
+
+/* Custom Selection */
+::selection { background: var(--primary-light); color: var(--primary-dark); }
+
+/* --------------------------------------------------------------------------
+   3. GLOBAL LAYOUT UTILITIES
+   -------------------------------------------------------------------------- */
+.container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+
+.text-center { text-align: center; }
+.text-muted { color: var(--text-light); }
+
+/* --------------------------------------------------------------------------
+   4. CORE COMPONENTS
+   -------------------------------------------------------------------------- */
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.btn:disabled, .btn.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+}
+
+.btn-outline {
+    background-color: transparent;
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+
+.btn-outline:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+    background-color: var(--primary-light);
+}
+
+/* Cards */
+.card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+}
+
+/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.badge-success { background-color: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+.badge-warning { background-color: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
+.badge-error { background-color: var(--error-bg); color: var(--error); border: 1px solid var(--error); }
+.badge-info { background-color: var(--info-bg); color: var(--info); border: 1px solid var(--info); }
+
+/* --------------------------------------------------------------------------
+   5. TOAST NOTIFICATIONS (Alerts)
+   -------------------------------------------------------------------------- */
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none; /* Let clicks pass through empty space */
+}
+
+.toast {
+    background-color: var(--bg-surface);
+    color: var(--text-dark);
+    border: 1px solid var(--border-color);
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 300px;
+    max-width: 400px;
+    pointer-events: auto;
+    
+    /* Animation initial state */
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+/* Semantic Toast Borders */
+.toast.success { border-left: 4px solid var(--success); }
+.toast.error { border-left: 4px solid var(--error); }
+.toast.warning { border-left: 4px solid var(--warning); }
+.toast.info { border-left: 4px solid var(--info); }
+
+.toast-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.toast.success .toast-icon { color: var(--success); }
+.toast.error .toast-icon { color: var(--error); }
+.toast.warning .toast-icon { color: var(--warning); }
+.toast.info .toast-icon { color: var(--info); }
+
+.toast-content { flex: 1; }
+.toast-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; color: var(--secondary); }
+.toast-msg { font-size: 0.85rem; color: var(--text-light); line-height: 1.4; }
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.toast-close:hover { background: var(--bg-body); color: var(--text-dark); }
+
+/* --------------------------------------------------------------------------
+   6. ANIMATIONS
+   -------------------------------------------------------------------------- */
+@keyframes spin { 
+    to { transform: rotate(360deg); } 
+}
+
+@keyframes fadeInUp { 
+    from { opacity: 0; transform: translateY(20px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+@keyframes float { 
+    0%, 100% { transform: translateY(0); } 
+    50% { transform: translateY(-10px); } 
+}
+
+/* Animation Utility Classes */
+.animate-fade-in { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-float { animation: float 4s ease-in-out infinite; }

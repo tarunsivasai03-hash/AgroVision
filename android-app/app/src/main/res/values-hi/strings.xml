@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AgroVision</string>
+    <string name="title_app">AgroVision</string>
+    <string name="tagline">हर खेत के लिए स्मार्ट देखभाल</string>
+    <string name="btn_camera">कैमरा</string>
+    <string name="btn_gallery">गैलरी</string>
+    <string name="btn_analyze">विश्लेषण करें</string>
+    <string name="lang_label">भाषा</string>
+    <string name="hint_select">विश्लेषण शुरू करने के लिए पत्ते की फोटो लें या चुनें।</string>
+    <string name="image_ready">छवि विश्लेषण के लिए तैयार है।</string>
+    <string name="model_loaded">एआई मॉडल लोड हो गया। आपकी फसलों की सुरक्षा के लिए तैयार।</string>
+    <string name="model_error">एआई मॉडल त्रुटि: %1$s</string>
+    <string name="scan_running">डिवाइस पर गहन स्कैन चल रहा है...</string>
+    <string name="scan_failed">स्कैन विफल: %1$s</string>
+    <string name="analysis_title">विश्लेषण परिणाम</string>
+    <string name="diagnosis_prefix">निदान:</string>
+    <string name="confidence_prefix">विश्वास:</string>
+    <string name="healthy_note">पौधा स्वस्थ दिख रहा है। नियमित देखभाल और निगरानी जारी रखें।</string>
+    <string name="disease_note">कार्रवाई आवश्यक: संभावित रोग मिला। सुझाए गए उपचार देखें।</string>
+    <string name="toast_capture_cancelled">कैमरा कैप्चर रद्द</string>
+    <string name="schemes_title">सरकारी योजनाएँ</string>
+    <string name="voice_title">वॉइस व हेल्पलाइन</string>
+    <string name="voice_subtitle">बहुभाषी मदद के लिए कभी भी कॉल करें</string>
+    <string name="voice_call">हेल्पलाइन कॉल करें</string>
+    <string name="voice_how">कैसे काम करता है</string>
+    <string name="voice_steps">1) टोल-फ्री 1800-123-4567 पर कॉल करें
+2) अपनी भाषा चुनें
+3) समस्या बताएं और एसएमएस में उपचार पाएं</string>
+    <string name="chat_title">AI सहायक (Gemini)</string>
+    <string name="chat_subtitle">वेब चैट जैसा — AgroVision सर्वर और Wi‑Fi ज़रूरी। रोग जाँच ऑफ़लाइन।</string>
+    <string name="chat_welcome">नमस्ते! मैं वेबसाइट जैसा Gemini सहायक हूँ। फसल, रोग या योजनाओं के बारे में पूछें। PC पर Flask चालू रखें।</string>
+    <string name="chat_thinking">सोच रहा है…</string>
+    <string name="chat_hint">रोग, योजनाएँ या देखभाल सुझाव पूछें</string>
+    <string name="api_base_url">http://10.0.2.2:5000</string>
+    <string name="chat_offline">चैट के लिए इंटरनेट और चालू AgroVision सर्वर चाहिए।</string>
+    <string name="chat_error_generic">सहायक तक नहीं पहुँचे। strings.xml में सर्वर URL और .env में GEMINI_API_KEY जाँचें।</string>
+</resources>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AgroVision</string>
+    <string name="title_app">AgroVision</string>
+    <string name="tagline">Smarter crop care for every field.</string>
+    <string name="btn_camera">Camera</string>
+    <string name="btn_gallery">Gallery</string>
+    <string name="btn_analyze">Analyze Health</string>
+    <string name="lang_label">Language</string>
+    <string name="hint_select">Select or capture an image of a leaf to start analysis.</string>
+    <string name="image_ready">Image ready for analysis.</string>
+    <string name="model_loaded">AI Model Loaded. Ready to protect your crops.</string>
+    <string name="model_error">AI Model Error: %1$s</string>
+    <string name="scan_running">Running deep scan on device...</string>
+    <string name="scan_failed">Scan Failed: %1$s</string>
+    <string name="analysis_title">Analysis Results</string>
+    <string name="diagnosis_prefix">DIAGNOSIS:</string>
+    <string name="confidence_prefix">Confidence:</string>
+    <string name="healthy_note">Plant looks healthy. Keep regular care and monitoring.</string>
+    <string name="disease_note">Action required: Potential disease detected. Check recommended cures.</string>
+    <string name="toast_capture_cancelled">Camera capture cancelled</string>
+    <string name="schemes_title">Government Schemes</string>
+    <string name="schemes_subtitle">Same Gemini advisor as the website — tap a scheme or ask below.</string>
+    <string name="schemes_advisor_hint">e.g. Which schemes for 2 acres of cotton in Maharashtra?</string>
+    <string name="schemes_advisor_btn">✨ Get AI scheme advice</string>
+    <string name="schemes_loading">Loading schemes…</string>
+    <string name="schemes_ai_thinking">Gemini is analyzing schemes…</string>
+    <string name="voice_title">Voice &amp; Helpline</string>
+    <string name="voice_subtitle">Call for multilingual help anytime</string>
+    <string name="voice_call">Call helpline</string>
+    <string name="voice_how">How it works</string>
+    <string name="voice_steps">1) Call toll-free 1800-123-4567\n2) Pick your language\n3) Describe the issue and get remedy via SMS</string>
+    <string name="chat_title">AI Assistant (Gemini)</string>
+    <string name="chat_subtitle">Same as web chat — needs AgroVision server + Wi‑Fi. Disease scan works offline.</string>
+    <string name="chat_welcome">Hi! I use the same Gemini assistant as the website. Ask about crops, diseases, or schemes. Keep Flask running on your PC.</string>
+    <string name="chat_thinking">Thinking…</string>
+    <string name="chat_hint">Ask about diseases, schemes, or care tips</string>
+    <!-- Emulator: 10.0.2.2 = host machine. Physical device: use your PC LAN IP, e.g. http://192.168.0.15:5000 -->
+    <string name="api_base_url">http://10.0.2.2:5000</string>
+    <string name="chat_offline">Chat needs internet. Connect to Wi‑Fi and ensure the AgroVision server is running.</string>
+    <string name="chat_error_generic">Could not reach the assistant. Check the server URL in strings.xml and GEMINI_API_KEY in .env.</string>
+</resources>
