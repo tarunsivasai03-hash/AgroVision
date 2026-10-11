@@ -1,147 +1,63 @@
-# AgroVision - Setup & Running Guide
+# AgroVision - Setup and troubleshooting
 
-## Quick Start
+See `README.md` for what the project does and how the leaf scan decides. This guide covers installing and fixing problems.
 
-### 1. Install Dependencies
+## 1. Install
+
+Python 3.11 or newer. From the project folder:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-If you encounter any errors, install dependencies individually:
+`requirements.txt` pins the tested versions (Flask, TensorFlow, Pillow, Flask-Limiter and others). Gemini is called directly over HTTPS, so no Google SDK is needed.
 
-```bash
-pip install Flask flask-cors tensorflow numpy Pillow h5py google-generativeai
-```
-
-### 2. Configure Gemini Chatbot (required for `/chatbot`)
+## 2. Configure
 
 ```bash
 copy .env.example .env
 ```
 
-Edit `.env` and set your API key from [Google AI Studio](https://aistudio.google.com/apikey):
+Set at least `GEMINI_API_KEY` (from [Google AI Studio](https://aistudio.google.com/apikey)). Optional: `OPENWEATHER_API_KEY` for real weather. All settings are listed in `.env.example`. Restart the server after editing `.env`.
 
-```
-GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-2.0-flash
-```
+## 3. Run
 
-Restart the Flask server after changing `.env`.
-
-### 3. Verify Required Files
-
-Make sure these files exist in the project directory:
-- ✅ `app.py` - Main Flask application
-- ✅ `plant_disease_model.h5` - ML model for disease detection
-- ✅ `templates/` folder with all HTML files
-- ✅ `static/` folder with CSS and JS files
-
-### 4. Run the Application
-
-**Option 1: Using run.py (Recommended)**
-```bash
-python run.py
-```
-
-**Option 2: Direct Python**
 ```bash
 python app.py
 ```
 
-### 5. Access the Website
+Or double-click `START_SERVER.bat`. Open http://127.0.0.1:5000. Pages: `/` home, `/detect` leaf scan, `/schemes`, `/weather`, `/voice` phone helpline, `/chatbot`.
 
-Once running, open your browser and visit:
-- 🏠 **Home**: http://127.0.0.1:5000/
-- 🔍 **Disease Detection**: http://127.0.0.1:5000/detect
-- 🏛️ **Government Schemes**: http://127.0.0.1:5000/schemes
-- 🎤 **Voice Help**: http://127.0.0.1:5000/voice
-- 🤖 **Chatbot**: http://127.0.0.1:5000/chatbot
+The server listens on `127.0.0.1` only. To let a phone on your Wi-Fi reach it, start it with `FLASK_HOST=0.0.0.0` (PowerShell: `$env:FLASK_HOST="0.0.0.0"; python app.py`). For production use a real server, for example `waitress-serve --listen=0.0.0.0:5000 app:app`.
 
-## Verify Core Features (automated tests)
+## 4. Check it works
 
 ```bash
-python -m unittest tests.test_api -v
+python -m pytest tests -q
 ```
 
-Or double-click `run_tests.bat`. This checks:
-
-- `/api/health` — model file, 38 labels, 38 disease DB entries
-- `/predict` — real inference on a test image (requires `plant_disease_model.h5`)
-- `/api/chat` — agriculture filter + mocked Gemini reply
-
-Low-confidence uploads are rejected inside `/predict` (no separate `validate-plant` endpoint; `plant_validity_model` is not used).
+or double-click `run_tests.bat`. Visit http://127.0.0.1:5000/api/health to see the model, the photo-check mode and the list of diagnosable crops.
 
 ## Troubleshooting
 
-### Common Issues
+**The leaf scan says "Can't check this photo right now".** The default `LEAF_CHECK=required` refuses scans when the Gemini photo check cannot run. Check that `GEMINI_API_KEY` is set and valid, that the machine is online, and the Gemini quota (below). `LEAF_CHECK=optional` shows the model's answer marked "not verified" instead; `LEAF_CHECK=off` never contacts Gemini. Both are less safe, because the model alone cannot tell a leaf from fruit.
 
-1. **Module Not Found Error**
-   ```bash
-   pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
+**Chat, scheme guides or translation fall back to canned text, or fail.** Usually the Gemini free quota (about 20 requests per day per model) is used up. The log shows `HTTP 429`. AgroVision then tries `gemini-flash-latest` and `gemini-flash-lite-latest`. If all are used up, wait for the daily reset or enable billing. Do not set `GEMINI_MODEL` to a retired name such as `gemini-2.0-flash` (it answers 404). Use `gemini-flash-latest`.
 
-2. **Model File Not Found**
-   - Ensure `plant_disease_model.h5` is in the root directory
-   - Check the file path in `app.py` (line 329)
+**Gemini or `git` fails with a certificate error on Windows.** Some antivirus or network software inspects HTTPS. AgroVision calls Gemini with Python's standard library, which uses the Windows certificate store, and usually works. For git, try `git -c http.sslBackend=schannel push`.
 
-3. **Port Already in Use**
-   - Change port in `app.py` (last line): `app.run(debug=True, port=5001)`
-   - Or stop other applications using port 5000
+**Module not found.** `pip install -r requirements.txt` again, in the same Python you run the app with.
 
-4. **Chatbot API Error**
-   - Ensure `.env` exists with a valid `GEMINI_API_KEY`
-   - Run `pip install python-dotenv` and restart the server
-   - Try `GEMINI_MODEL=gemini-2.0-flash` or `gemini-1.5-flash` in `.env`
-   - On Android, set `api_base_url` in `strings.xml` to your PC's LAN IP (physical device)
+**Model file not found.** `plant_disease_model.h5` must be in the project root.
 
-5. **Import Errors**
-   ```bash
-   # For TensorFlow issues
-   pip install tensorflow --upgrade
-   
-   # For Google Generative AI
-   pip install google-generativeai --upgrade
-   ```
+**Port 5000 in use.** Start with `PORT=5001` (PowerShell: `$env:PORT="5001"; python app.py`).
 
-## Features
+**Weather shows "Sample data".** `OPENWEATHER_API_KEY` is missing or invalid, or the place name was not found.
 
-✅ **Plant Disease Detection** - Upload images to detect plant diseases  
-✅ **Government Schemes** - Browse and apply for agricultural schemes  
-✅ **AI Chatbot** - Get agriculture-related answers instantly  
-✅ **Voice Help** - Voice assistance for farmers  
-✅ **Multi-language Support** - Available in multiple Indian languages  
-
-## Project Structure
-
-```
-AgroVision/
-├── app.py                    # Main Flask application
-├── run.py                    # Quick start script
-├── plant_disease_model.h5    # ML model file
-├── requirements.txt          # Python dependencies
-├── templates/                # HTML templates
-│   ├── index.html
-│   ├── detect.html
-│   ├── schemes.html
-│   ├── voice.html
-│   └── chatbot.html
-├── static/                   # Static files
-│   ├── css/
-│   ├── js/
-│   └── uploads/
-└── README.md
-
-```
+**A page changes language slowly the first time.** Translations come from Gemini and are then cached in `instance/translation_cache.json`, so later visits are instant. Text that could not be translated stays in English.
 
 ## Notes
 
-- The chatbot requires internet connection for Google Gemini API
-- Disease detection works offline after model loads
-- Upload folder is automatically created at `static/uploads/`
-- Model loading happens on first prediction request
-
----
-
-**Need Help?** Check the error messages in the terminal for specific issues.
+- Uploaded photos are never saved. They are analysed in memory.
+- The first scan after starting the server is slower while the model loads.
+- Android: see the Android section of `README.md`. The app scans on the phone without the photo check.

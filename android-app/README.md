@@ -13,7 +13,7 @@ Native Kotlin app using **TensorFlow Lite** for on-device plant disease detectio
 
 ## Features
 
-- **Offline** disease inference with `plant_disease_model.tflite` (112×112, 38 classes)
+- **Offline** disease inference with `plant_disease_model.tflite` (112×112, 38 classes). It has none of the web scan's checks (they need Gemini), so on real photos treat results as a hint only.
 - **Online AI chat** — calls the same Flask `/api/chat` + Gemini as the website (not keyword rules)
 - Photo picker and camera capture
 - Government schemes list, TTS, and multi-language UI (EN / HI / TE)

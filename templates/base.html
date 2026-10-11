@@ -1,0 +1,130 @@
+{%- set nav_items = [
+    ('pages.home', '/', 'navHome', 'Home', 'Home'),
+    ('pages.detect', '/detect', 'navDetect', 'Leaf scan', 'Scan'),
+    ('pages.schemes', '/schemes', 'navSchemes', 'Schemes', 'Schemes'),
+    ('pages.weather', '/weather', 'navWeather', 'Weather', 'Weather'),
+    ('pages.voice', '/voice', 'navVoice', 'Phone helpline', 'Helpline'),
+    ('pages.chatbot', '/chatbot', 'navChatbot', 'Ask a question', 'Ask'),
+] -%}
+{%- set nav_icons = {
+    'pages.home': '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+    'pages.detect': '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+    'pages.schemes': '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>',
+    'pages.weather': '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
+    'pages.voice': '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+    'pages.chatbot': '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+} -%}
+{%- set mobile_nav = ['pages.home', 'pages.detect', 'pages.schemes', 'pages.weather', 'pages.chatbot'] -%}
+{%- set leaf_icon = '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>' -%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}AgroVision{% endblock %}</title>
+    <meta name="description" content="{% block description %}AgroVision helps farmers detect plant diseases, find government schemes, check farm weather and get agriculture advice.{% endblock %}">
+    <meta name="theme-color" content="#245C32">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23245C32' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'/%3E%3C/svg%3E">
+
+    <script>
+        // Apply the saved (or system) theme before first paint to avoid a flash.
+        (function () {
+            var theme = null;
+            try { theme = localStorage.getItem('agrovision-theme'); } catch (e) {}
+            if (theme !== 'dark' && theme !== 'light') {
+                theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wdth,wght@75..125,400..800&family=Anek+Devanagari:wdth,wght@75..125,400..800&family=Anek+Telugu:wdth,wght@75..125,400..800&family=Anek+Tamil:wdth,wght@75..125,400..800&family=Anek+Kannada:wdth,wght@75..125,400..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block styles %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <div class="offline-indicator" id="offlineIndicator" role="status">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        <span>You're offline. Leaf scans, answers and weather need an internet connection.</span>
+    </div>
+
+    <nav class="navbar" aria-label="Main">
+        <div class="nav-container container">
+            <div class="nav-logo">
+                <a href="/" aria-label="AgroVision home">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ leaf_icon|safe }}</svg>
+                    <span>AgroVision</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                {%- for endpoint, href, key, label, _ in nav_items %}
+                <li><a href="{{ href }}"{% if request.endpoint == endpoint %} class="active" aria-current="page"{% endif %}>{{ label }}</a></li>
+                {%- endfor %}
+            </ul>
+            <div class="language-selector">
+                <label for="languageSelect" class="visually-hidden">Language</label>
+                <select id="languageSelect" class="language-select">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="te">తెలుగు</option>
+                    <option value="ta">தமிழ்</option>
+                    <option value="kn">ಕನ್ನಡ</option>
+                    <option value="mr">मराठी</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    {% block footer %}
+    <footer class="footer">
+        <div class="container footer-inner">
+            <div>
+                <div class="footer-brand">AgroVision</div>
+                <p>Disease checks, scheme details and weather for Indian farmers. Scheme rules change; confirm on the official portal or at your agriculture office before applying.</p>
+            </div>
+            <nav aria-label="Footer">
+                {%- for endpoint, href, key, label, _ in nav_items %}
+                <a href="{{ href }}">{{ label }}</a>
+                {%- endfor %}
+            </nav>
+            <p>&copy; <span id="year">2026</span> AgroVision</p>
+        </div>
+    </footer>
+    {% endblock %}
+
+    {% block floating_actions %}
+    <div class="floating-actions">
+        <button type="button" class="float-btn" id="themeToggle" aria-label="Toggle dark mode">
+            <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+        <button type="button" class="float-btn" id="backToTop" aria-label="Back to top" title="Back to top" hidden>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
+        </button>
+    </div>
+    {% endblock %}
+
+    <nav class="mobile-bottom-nav" aria-label="Main (mobile)">
+        <ul>
+            {%- for endpoint, href, key, label, short in nav_items if endpoint in mobile_nav %}
+            <li>
+                <a href="{{ href }}"{% if request.endpoint == endpoint %} class="active" aria-current="page"{% endif %}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ nav_icons[endpoint]|safe }}</svg>
+                    <span>{{ short }}</span>
+                </a>
+            </li>
+            {%- endfor %}
+        </ul>
+    </nav>
+
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

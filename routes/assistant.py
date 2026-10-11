@@ -2,9 +2,11 @@
 Agriculture Assistant blueprint: /api/chat
 """
 import logging
+import re
 
 from flask import Blueprint, request, jsonify
 
+from extensions import limiter, AI_LIMIT
 from services.gemini import (
     AGRICULTURE_KEYWORDS,
     generate_gemini_reply,
@@ -14,8 +16,24 @@ logger = logging.getLogger(__name__)
 
 assistant_bp = Blueprint("assistant", __name__, url_prefix="/api")
 
+MAX_MESSAGE_CHARS = 2000
+
+# Whole-word match (with optional plural "s"/"es"), so "plant" does not match "implant".
+_AGRI_PATTERN = re.compile(
+    r"\b(?:" + "|".join(re.escape(k) for k in AGRICULTURE_KEYWORDS) + r")(?:e?s)?\b",
+    re.IGNORECASE,
+)
+# Letters from Indian scripts (Devanagari through Malayalam). Questions in these
+# languages are passed to Gemini, whose system prompt redirects off-topic questions.
+_INDIC_PATTERN = re.compile(r"[\u0900-\u0D7F]")
+
+
+def is_agriculture_question(message: str) -> bool:
+    return bool(_AGRI_PATTERN.search(message) or _INDIC_PATTERN.search(message))
+
 
 @assistant_bp.route("/chat", methods=["POST"])
+@limiter.limit(AI_LIMIT)
 def chat():
     """Chatbot API endpoint that responds to agriculture-related queries."""
     try:
@@ -25,12 +43,12 @@ def chat():
 
         if not user_message:
             return jsonify({"error": "Message is required"}), 400
+        if len(user_message) > MAX_MESSAGE_CHARS:
+            return jsonify({"error": f"Message is too long (max {MAX_MESSAGE_CHARS} characters)."}), 400
 
         user_message_lower = user_message.lower()
-        is_agriculture_related = any(k in user_message_lower for k in AGRICULTURE_KEYWORDS)
-        has_non_english_text = any(ord(ch) > 127 for ch in user_message)
 
-        if not is_agriculture_related and not has_non_english_text:
+        if not is_agriculture_question(user_message):
             return jsonify({
                 "response": (
                     "I'm an agriculture-focused assistant. Please ask about farming, crops, "

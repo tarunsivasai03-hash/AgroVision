@@ -9,8 +9,6 @@ __pycache__/
 
 # Flask / local
 .env
-static/uploads/*
-!static/uploads/.gitkeep
 flask.log
 *.log
 hs_err_pid*.log
@@ -32,3 +30,6 @@ Thumbs.db
 
 # Models (large binaries — track only if you use Git LFS)
 # plant_disease_model.h5
+
+# Runtime data (translation cache)
+instance/

@@ -6,6 +6,7 @@ import logging
 
 from flask import Blueprint, request, jsonify
 
+from extensions import limiter, AI_LIMIT
 from services.gemini import (
     SCHEMES_SYSTEM_PROMPT,
     generate_gemini_reply,
@@ -21,6 +22,32 @@ logger = logging.getLogger(__name__)
 
 schemes_bp = Blueprint("schemes", __name__, url_prefix="/api/schemes")
 
+_UNSPECIFIED = {"", "not specified"}
+MAX_LAND_ACRES = 100000
+
+
+def _parse_land_acres(value):
+    """
+    Return (land_text, error). Empty / "not specified" become "" (unknown);
+    anything else must be a non-negative number of acres.
+    """
+    text = str(value if value is not None else "").strip()
+    if text.lower() in _UNSPECIFIED:
+        return "", None
+    try:
+        acres = float(text)
+    except ValueError:
+        return None, "land_acres must be a number of acres, e.g. 2.5"
+    if not 0 <= acres <= MAX_LAND_ACRES:
+        return None, "land_acres must be between 0 and 100000"
+    return f"{acres:g}", None
+
+
+def _text(data, key, default=""):
+    """Read a JSON field as a stripped string, whatever type the client sent."""
+    value = data.get(key)
+    return str(value).strip() if value not in (None, "") else default
+
 
 @schemes_bp.route("", methods=["GET"])
 def list_schemes():
@@ -29,17 +56,23 @@ def list_schemes():
 
 
 @schemes_bp.route("/advise", methods=["POST"])
+@limiter.limit(AI_LIMIT)
 def advise():
     """Gemini advisor: eligibility and scheme recommendations."""
     try:
         data = request.get_json(silent=True) or {}
-        message = (data.get("message") or "").strip()
+        message = _text(data, "message")
         if not message:
             return jsonify({"error": "message is required"}), 400
+        if len(message) > 2000:
+            return jsonify({"error": "message is too long (max 2000 characters)"}), 400
 
-        state = (data.get("state") or "not specified").strip()
-        crop = (data.get("crop") or "not specified").strip()
-        land = (data.get("land_acres") or "not specified").strip()
+        state = _text(data, "state", "not specified")
+        crop = _text(data, "crop", "not specified")
+        land, land_error = _parse_land_acres(data.get("land_acres"))
+        if land_error:
+            return jsonify({"error": land_error}), 400
+        land = land or "not specified"
 
         schemes_context = json.dumps(get_government_schemes(), indent=2, ensure_ascii=False)
         profile_completeness = []
@@ -68,6 +101,7 @@ def advise():
 
 
 @schemes_bp.route("/<scheme_id>/explain", methods=["POST"])
+@limiter.limit(AI_LIMIT)
 def explain(scheme_id):
     """Gemini-generated detailed guide for one scheme."""
     try:
@@ -76,8 +110,8 @@ def explain(scheme_id):
             return jsonify({"error": "Scheme not found"}), 404
 
         data = request.get_json(silent=True) or {}
-        state = (data.get("state") or "India").strip()
-        question = (data.get("question") or "Explain eligibility, documents, steps to apply, and benefits.").strip()
+        state = _text(data, "state", "India")
+        question = _text(data, "question", "Explain eligibility, documents, steps to apply, and benefits.")
 
         user_block = (
             f"Scheme data:\n{json.dumps(scheme, indent=2, ensure_ascii=False)}\n\n"
@@ -113,13 +147,16 @@ def qualify():
     Returns matched schemes with reasons, without AI cost.
     """
     data = request.get_json(silent=True) or {}
-    state = (data.get("state") or "").strip()
+    state = _text(data, "state")
+    land, land_error = _parse_land_acres(data.get("land_acres"))
+    if land_error:
+        return jsonify({"error": land_error}), 400
 
     profile = {
         "state": state,
-        "crop": (data.get("crop") or "").strip(),
-        "land_acres": (data.get("land_acres") or "").strip(),
-        "farmer_type": (data.get("farmer_type") or "any").strip(),
+        "crop": _text(data, "crop"),
+        "land_acres": land,
+        "farmer_type": _text(data, "farmer_type", "any"),
     }
 
     matched = qualify_farmer(profile)

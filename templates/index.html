@@ -1,650 +1,228 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroVision - Smart Farming Assistant</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- CSS VARIABLES & THEMING --- */
-        :root {
-            --primary: #10b981;        /* Emerald Green */
-            --primary-dark: #059669;
-            --primary-light: #d1fae5;
-            
-            --gradient-primary: linear-gradient(135deg, #10b981, #0ea5e9);
-            --gradient-text: linear-gradient(to right, #10b981, #0ea5e9);
-            --gradient-blob-1: #10b981;
-            --gradient-blob-2: #3b82f6;
+{% extends "base.html" %}
 
-            /* Light Theme */
-            --secondary: #0f172a;      /* Slate 900 */
-            --text-dark: #334155;      /* Slate 700 */
-            --text-light: #64748b;     /* Slate 500 */
-            --bg-body: #f8fafc;        /* Slate 50 */
-            --bg-body-gradient: radial-gradient(circle at top left, #ffffff, #f8fafc);
-            --bg-surface: #ffffff;
-            --bg-surface-hover: #f1f5f9;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --border-color: rgba(226, 232, 240, 0.8);
-            
-            --weather-icon-bg: #fef08a;
-            --weather-icon-color: #ca8a04;
-            
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
-            --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.4);
-            --radius-md: 16px;
-            --radius-lg: 24px;
-        }
+{% block title %}AgroVision: leaf disease checks, schemes and farm weather{% endblock %}
+{% block description %}Photograph a sick leaf to get a possible disease and what to do. Find government schemes and farm weather alerts.{% endblock %}
+{% block body_class %}home-page{% endblock %}
 
-        [data-theme="dark"] {
-            /* Dark Theme */
-            --primary-light: rgba(16, 185, 129, 0.15);
-            --secondary: #f8fafc;
-            --text-dark: #f1f5f9;      
-            --text-light: #94a3b8;     
-            --bg-body: #0f172a;        
-            --bg-body-gradient: radial-gradient(circle at top left, #1e293b, #0f172a);
-            --bg-surface: #1e293b;
-            --bg-surface-hover: #334155;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --border-color: rgba(51, 65, 85, 0.8);
-            
-            --weather-icon-bg: #422006;
-            --weather-icon-color: #facc15;
-            
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 10px 10px -5px rgb(0 0 0 / 0.3);
-            --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.2);
-        }
+{% block styles %}
+<style>
+    /* --- Hero --- */
+    .hero {
+        display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 3.5rem; align-items: center; padding: 3.5rem 0 3rem;
+    }
+    .hero h1 {
+        font-size: var(--t-display); line-height: 0.98; letter-spacing: -0.015em;
+        max-width: 13ch; margin-bottom: 1.25rem;
+    }
+    .hero-lead { font-size: var(--t-md); line-height: 1.5; max-width: 46ch; margin-bottom: 1.75rem; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .hero-actions .btn { min-height: 54px; padding-inline: 1.6rem; font-size: var(--t-md); }
+    .hero-crops { font-size: var(--t-sm); color: var(--ink-3); max-width: 52ch; }
+    .hero-crops strong { color: var(--ink-2); font-weight: 600; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-body-gradient);
-            background-color: var(--bg-body);
-            color: var(--text-dark);
-            overflow-x: hidden;
-            padding-bottom: 80px; /* Space for mobile nav */
-            transition: background-color 0.3s ease, color 0.3s ease;
-            min-height: 100vh;
-        }
+    /* Example result, styled like a field-notebook entry */
+    .specimen {
+        background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-panel);
+        overflow: hidden; box-shadow: var(--shadow-float);
+    }
+    .specimen-caption {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.65rem 1.1rem; background: var(--surface-2); border-bottom: 1px solid var(--rule);
+        font-size: var(--t-sm); color: var(--ink-3);
+    }
+    .specimen-figure { background: var(--leaf-wash); display: flex; justify-content: center; padding: 1.25rem 1rem 0.75rem; }
+    .specimen-figure svg { width: min(100%, 300px); height: auto; }
+    .specimen-body { padding: 1.1rem 1.25rem 1.35rem; display: grid; gap: 0.9rem; }
+    .specimen-title { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+    .specimen-title h2 { font-size: var(--t-xl); }
+    .specimen-title span { color: var(--ink-3); font-size: var(--t-sm); }
+    .specimen dl { display: grid; grid-template-columns: auto 1fr; gap: 0.45rem 0.9rem; font-size: 0.98rem; }
+    .specimen dt { font-weight: 600; color: var(--ink); }
+    .specimen dd { color: var(--ink-2); }
 
-        h1, h2, h3, .brand-font { font-family: 'Outfit', sans-serif; }
+    /* --- Today's weather line --- */
+    .today {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.75rem;
+        padding: 1rem 0.5rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+        text-decoration: none; color: var(--ink-2);
+    }
+    .today:hover { color: var(--ink-2); background: var(--surface); }
+    .today-temp { font-size: var(--t-xl); font-weight: 700; font-stretch: condensed; color: var(--ink); line-height: 1; }
+    .today-place { font-weight: 600; color: var(--ink); display: block; }
+    .today-facts { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; color: var(--ink-3); }
+    .today-link { margin-left: auto; color: var(--leaf); font-weight: 600; }
 
-        /* --- UTILITY CLASSES --- */
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 14px 28px; border-radius: 50px;
-            font-weight: 600; font-size: 1rem; text-decoration: none;
-            transition: all 0.3s ease; border: none; cursor: pointer;
-            font-family: 'Inter', sans-serif;
-        }
-        .btn-primary { 
-            background: var(--gradient-primary); color: white; 
-            box-shadow: var(--shadow-glow); 
-            border: none;
-        }
-        .btn-primary:hover { 
-            transform: translateY(-3px) scale(1.02); 
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
-        }
-        .btn-outline { 
-            border: 2px solid var(--border-color); color: var(--text-dark); 
-            background: var(--bg-surface); 
-        }
-        .btn-outline:hover { 
-            border-color: var(--primary); color: var(--primary);
-            background: var(--primary-light); 
-        }
+    /* --- Task list --- */
+    .section { padding: 3.5rem 0 0; }
+    .section > h2 { margin-bottom: 1.25rem; }
+    .tasks { list-style: none; border-top: 1px solid var(--rule); }
+    .tasks a {
+        display: grid; grid-template-columns: 52px 1fr auto; gap: 1.1rem; align-items: center;
+        padding: 1.1rem 0.5rem; border-bottom: 1px solid var(--rule);
+        text-decoration: none; color: inherit;
+    }
+    .tasks a:hover { background: var(--surface); }
+    .tasks a:hover .task-go { color: var(--leaf); transform: translateX(3px); }
+    .task-icon {
+        width: 52px; height: 52px; border-radius: 12px; display: grid; place-items: center;
+        background: var(--leaf-wash); color: var(--leaf);
+    }
+    .tasks h3 { font-size: var(--t-lg); font-stretch: condensed; margin-bottom: 0.15rem; }
+    .tasks p { color: var(--ink-3); }
+    .task-go { color: var(--ink-3); transition: transform 0.15s, color 0.15s; }
 
-        /* --- NAVBAR --- */
-        .navbar {
-            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            position: sticky; top: 0; z-index: 100; background-color: var(--bg-surface);
-            border-bottom: 1px solid var(--border-color); padding: 1rem 0;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
-        .nav-logo a { font-size: 1.5rem; font-weight: 800; color: var(--primary-dark); text-decoration: none; display: flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; }
-        .nav-menu { display: flex; align-items: center; gap: 2rem; list-style: none; }
-        .nav-menu a { text-decoration: none; color: var(--text-light); font-weight: 500; transition: color 0.3s; }
-        .nav-menu a:hover, .nav-menu a.active { color: var(--primary); font-weight: 600; }
-        
-        .language-select {
-            padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);
-            background: var(--bg-surface); color: var(--text-dark);
-            font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 500;
-            cursor: pointer; outline: none; transition: 0.2s;
-        }
-        .language-select:focus { border-color: var(--primary); }
+    /* --- Steps (a real sequence, so numbered) --- */
+    .steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; counter-reset: step; }
+    .steps li { counter-increment: step; border-top: 3px solid var(--leaf); padding-top: 1rem; }
+    .steps li::before {
+        content: counter(step); display: block; margin-bottom: 0.4rem;
+        font-size: var(--t-2xl); font-weight: 700; font-stretch: condensed; line-height: 1; color: var(--leaf);
+    }
+    .steps h3 { margin-bottom: 0.35rem; }
+    .steps p { color: var(--ink-3); max-width: 34ch; }
 
-        /* --- HERO SECTION --- */
-        .hero {
-            padding: 5rem 1.5rem 3rem; max-width: 1200px; margin: 0 auto;
-            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
-            align-items: center; min-height: 85vh;
-        }
-        .hero-badge {
-            background: var(--primary-light); color: var(--primary);
-            padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
-            display: inline-flex; align-items: center; gap: 6px; margin-bottom: 1.5rem;
-        }
-        .hero-title { font-size: 3.8rem; line-height: 1.15; margin-bottom: 1.5rem; color: var(--secondary); letter-spacing: -0.02em; }
-        .hero-title span { 
-            background: var(--gradient-text);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .hero-desc { font-size: 1.15rem; color: var(--text-light); line-height: 1.6; margin-bottom: 2.5rem; max-width: 90%; }
-        .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
-        
-        /* Hero Visual */
-        .hero-visual { position: relative; display: flex; justify-content: center; }
-        .visual-blob {
-            position: absolute; width: 450px; height: 450px;
-            background: radial-gradient(circle at 30% 30%, var(--gradient-blob-1) 0%, transparent 60%),
-                        radial-gradient(circle at 70% 70%, var(--gradient-blob-2) 0%, transparent 60%);
-            opacity: 0.25; filter: blur(50px); z-index: 1;
-            animation: blob-spin 10s infinite linear;
-        }
-        .visual-card {
-            background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg); padding: 2.5rem;
-            box-shadow: var(--shadow-lg); width: 100%; max-width: 380px;
-            position: relative; z-index: 2; animation: float 6s ease-in-out infinite;
-        }
-        .visual-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
-        .status-badge {
-            display: flex; align-items: center; gap: 6px; font-size: 0.85rem;
-            color: var(--primary); font-weight: 600;
-            background: var(--primary-light); padding: 4px 10px; border-radius: 12px;
-        }
-        .status-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; animation: pulse 2s infinite; }
-        .scan-area {
-            background: var(--bg-body); height: 220px; border-radius: var(--radius-md);
-            display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-        .scan-line {
-            position: absolute; top: 0; left: 0; width: 100%; height: 3px;
-            background: var(--primary); box-shadow: 0 0 15px var(--primary);
-            animation: scan 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        }
-        .scan-area svg { color: var(--primary-dark); opacity: 0.8; }
-        .confidence-row { margin-top: 1.5rem; display: flex; justify-content: space-between; font-size: 0.95rem; font-weight: 500; }
+    @media (max-width: 900px) {
+        .hero { grid-template-columns: 1fr; gap: 2.25rem; padding-top: 2rem; }
+        .steps { grid-template-columns: 1fr; gap: 1.5rem; }
+    }
+    @media (max-width: 560px) {
+        .hero-actions .btn { flex: 1 1 100%; }
+        .today-link { margin-left: 0; }
+        .tasks a { grid-template-columns: 44px 1fr auto; gap: 0.85rem; padding-inline: 0; }
+        .task-icon { width: 44px; height: 44px; }
+        .tasks h3 { font-size: var(--t-md); }
+    }
+</style>
+{% endblock %}
 
-        /* --- WEATHER WIDGET --- */
-        .weather-wrapper { padding: 0 1.5rem; max-width: 1200px; margin: -2rem auto 4rem; position: relative; z-index: 10; }
-        .weather-card {
-            background: var(--glass-bg); backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem;
-            box-shadow: var(--shadow-md); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 2rem;
-        }
-        .weather-main { display: flex; align-items: center; gap: 1.5rem; }
-        .weather-icon { background: var(--weather-icon-bg); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--weather-icon-color); transition: background-color 0.3s ease; }
-        .weather-temp { font-size: 2.5rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: var(--secondary); line-height: 1; }
-        .weather-loc { color: var(--text-light); font-weight: 500; margin-top: 4px; }
-        .weather-details { display: flex; gap: 3rem; flex-wrap: wrap; }
-        .weather-detail-item { display: flex; align-items: center; gap: 12px; }
-        .weather-detail-item svg { color: var(--primary); }
-        .weather-detail-info strong { display: block; font-size: 1.1rem; color: var(--secondary); }
-        .weather-detail-info span { font-size: 0.85rem; color: var(--text-light); }
-
-        /* --- FEATURES GRID --- */
-        .section-padding { padding: 5rem 1.5rem; max-width: 1200px; margin: 0 auto; }
-        .section-header { text-align: center; margin-bottom: 4rem; }
-        .section-header h2 { font-size: 2.5rem; color: var(--secondary); margin-bottom: 1rem; }
-        .section-header p { color: var(--text-light); font-size: 1.1rem; }
-        
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-        .feature-card {
-            background: var(--glass-bg); padding: 2.5rem 2rem; border-radius: var(--radius-lg); backdrop-filter: blur(8px);
-            box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; overflow: hidden;
-        }
-        .feature-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-            background: var(--gradient-primary); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease;
-        }
-        .feature-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-lg); border-color: transparent; }
-        .feature-card:hover::before { transform: scaleX(1); }
-        .feature-icon-wrapper {
-            width: 56px; height: 56px; background: var(--primary-light); border-radius: 16px;
-            display: flex; align-items: center; justify-content: center; color: var(--primary);
-            margin-bottom: 1.5rem;
-        }
-        .feature-card h3 { font-size: 1.3rem; color: var(--secondary); margin-bottom: 0.75rem; }
-        .feature-card p { color: var(--text-light); line-height: 1.6; margin-bottom: 1.5rem; }
-        .feature-link {
-            color: var(--primary); text-decoration: none; font-weight: 600;
-            display: inline-flex; align-items: center; gap: 4px; transition: gap 0.2s;
-        }
-        .feature-link:hover { gap: 8px; color: var(--primary-dark); }
-
-        /* --- HOW IT WORKS (Timeline) --- */
-        .how-it-works { background: var(--bg-surface); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
-        .steps-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; position: relative; }
-        /* Connection Line */
-        .steps-container::before {
-            content: ''; position: absolute; top: 40px; left: 10%; width: 80%; height: 2px;
-            background: var(--border-color); z-index: 1;
-        }
-        .step-card { position: relative; z-index: 2; text-align: center; background: var(--bg-surface); padding: 0 1rem; }
-        .step-icon {
-            width: 80px; height: 80px; background: var(--bg-surface); border: 3px solid var(--primary);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            color: var(--primary); font-size: 1.5rem; font-weight: 700; font-family: 'Outfit', sans-serif;
-            margin: 0 auto 1.5rem; box-shadow: 0 0 0 12px var(--bg-surface); transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .step-card h3 { color: var(--secondary); margin-bottom: 0.5rem; }
-        .step-card p { color: var(--text-light); line-height: 1.5; font-size: 0.95rem; }
-
-        /* --- FOOTER & MOBILE NAV --- */
-        .footer { background: var(--bg-surface); padding-top: 4rem; border-top: 1px solid var(--border-color); }
-        .footer-container {
-            max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem;
-        }
-        .footer-logo { display: flex; align-items: center; gap: 8px; font-size: 1.5rem; font-weight: 800; color: var(--secondary); font-family: 'Outfit', sans-serif; margin-bottom: 1rem; }
-        .footer p { color: var(--text-light); line-height: 1.6; }
-        .footer h3 { color: var(--secondary); margin-bottom: 1.5rem; }
-        .footer ul { list-style: none; }
-        .footer ul li { margin-bottom: 0.75rem; }
-        .footer ul a { color: var(--text-light); text-decoration: none; transition: color 0.2s; }
-        .footer ul a:hover { color: var(--primary); }
-        .footer-bottom {
-            text-align: center; padding: 2rem; color: var(--text-light);
-            border-top: 1px solid var(--border-color); margin-top: 3rem; font-size: 0.9rem;
-        }
-        
-        .mobile-bottom-nav {
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--glass-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            background-color: var(--bg-surface); border-top: 1px solid var(--border-color); z-index: 999;
-            padding: 12px 1.5rem; padding-bottom: calc(12px + env(safe-area-inset-bottom));
-        }
-        .mobile-bottom-nav ul { display: flex; justify-content: space-between; list-style: none; }
-        .mobile-bottom-nav a {
-            display: flex; flex-direction: column; align-items: center;
-            text-decoration: none; color: var(--text-light); font-size: 0.75rem; gap: 6px; font-weight: 500;
-        }
-        .mobile-bottom-nav a.active { color: var(--primary); }
-        .mobile-bottom-nav svg { transition: transform 0.2s; }
-        .mobile-bottom-nav a:hover svg { transform: translateY(-2px); }
-
-        /* Floating Actions */
-        .floating-actions { position: fixed; bottom: 90px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 990; }
-        .action-btn {
-            width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border-color);
-            background: var(--bg-surface); color: var(--text-dark); cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--shadow-md); transition: 0.3s;
-        }
-        .action-btn:hover { background: var(--bg-surface-hover); transform: translateY(-3px); }
-        #backToTop { display: none; }
-
-        .offline-indicator {
-            background: #ef4444; color: white; text-align: center; padding: 8px;
-            font-size: 0.9rem; font-weight: 500; display: none;
-        }
-        .offline-indicator.show { display: block; }
-
-        /* Animations */
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
-        @keyframes scan { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-        @keyframes blob-spin { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .hero { grid-template-columns: 1fr; text-align: center; padding-top: 3rem; gap: 3rem; }
-            .hero-desc { margin: 0 auto 2rem; }
-            .hero-buttons { justify-content: center; }
-            .weather-card { flex-direction: column; align-items: center; text-align: center; }
-            .weather-details { justify-content: center; gap: 2rem; }
-            .steps-container { grid-template-columns: 1fr; gap: 3rem; }
-            .steps-container::before { width: 2px; height: 100%; left: 50%; top: 0; transform: translateX(-50%); }
-            .step-card { padding: 0; }
-            .step-icon { box-shadow: 0 10px 0 10px var(--bg-surface); margin-bottom: 1rem; }
-        }
-        @media (max-width: 768px) {
-            .nav-menu { display: none; } 
-            .mobile-bottom-nav { display: block; }
-            .hero-title { font-size: 2.5rem; }
-            .floating-actions { bottom: 100px; right: 16px; }
-        }
-    </style>
-</head>
-<body>
-    
-    <div class="offline-indicator" id="offlineIndicator">
-        ⚠️ You are currently offline. Some features may not be available.
-    </div>
-
-    <nav class="navbar" id="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <a href="/">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
-                    <span data-lang="appName">AgroVision</span>
-                </a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="/" class="active" data-lang="navHome">Home</a></li>
-                <li><a href="/detect" data-lang="navDetect">Detect Disease</a></li>
-                <li><a href="/schemes" data-lang="navSchemes">Govt Schemes</a></li>
-                <li><a href="/weather" data-lang="navWeather">Weather</a></li>
-                <li><a href="/voice" data-lang="navVoice">Voice Help</a></li>
-                <li><a href="/chatbot" data-lang="navChatbot">Chatbot</a></li>
-            </ul>
-            <div class="language-selector">
-                <select id="languageSelect" class="language-select" onchange="changeLanguage(this.value)" aria-label="Select Language">
-                    <option value="en">English</option>
-                    <option value="hi">हिन्दी</option>
-                    <option value="te">తెలుగు</option>
-                    <option value="ta">தமிழ்</option>
-                    <option value="kn">ಕನ್ನಡ</option>
-                    <option value="mr">मराठी</option>
-                </select>
-            </div>
-        </div>
-    </nav>
-
-    <main>
+{% block content %}
+<main id="main-content">
+    <div class="container">
         <section class="hero">
-            <div class="hero-content">
-                <div class="hero-badge" data-lang="aiBadge">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                    AI-Powered Farming
-                </div>
-                <h1 class="hero-title brand-font" id="greeting">
-                    <span data-lang="welcomeTo">Welcome to</span> <br><span>AgroVision</span>
-                </h1>
-                <p class="hero-desc" data-lang="heroDescription">
-                    Identify plant diseases instantly, access government schemes, and get expert farming advice—all in one smart platform.
-                </p>
-                <div class="hero-buttons">
-                    <a href="/detect" class="btn btn-primary" data-lang="btnStartDetection">
-                        Start Detection
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            <div>
+                <h1>Photograph a sick leaf. Get a hint of what it is and what to do.</h1>
+                <p class="hero-lead">AgroVision compares a leaf photo with known diseases and suggests treatment and prevention steps. It often says it is not sure, so confirm with your agriculture officer. It is free and works in English, Hindi, Telugu, Tamil, Kannada and Marathi.</p>
+                <div class="hero-actions">
+                    <a href="/detect" class="btn btn-primary">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                        Scan a leaf
                     </a>
-                    <a href="#how-it-works" class="btn btn-outline" data-lang="btnLearnMore">How it Works</a>
+                    <a href="/chatbot" class="btn btn-secondary">Ask a question</a>
                 </div>
+                <p class="hero-crops"><strong>Checks {{ covered_crops|length }} crops:</strong> {{ covered_crops|join(", ") }}.</p>
             </div>
-            
-            <div class="hero-visual">
-                <div class="visual-blob"></div>
-                <div class="visual-card">
-                    <div class="visual-card-header">
-                        <strong data-lang="liveAnalysis" class="brand-font">Live Analysis</strong>
-                        <div class="status-badge">
-                            <div class="status-dot"></div>
-                            <span data-lang="statusActive">Active</span>
-                        </div>
-                    </div>
-                    <div class="scan-area">
-                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
-                        <div class="scan-line"></div>
-                    </div>
-                    <div class="confidence-row">
-                        <span data-lang="confidenceLabel" style="color: var(--text-light);">AI Confidence</span>
-                        <strong style="color: var(--primary);">98.5%</strong>
-                    </div>
+
+            <figure class="specimen" aria-label="Example of a scan result">
+                <figcaption class="specimen-caption">
+                    <span>Example result</span>
+                    <span>Tomato leaf</span>
+                </figcaption>
+                <div class="specimen-figure" aria-hidden="true">
+                    <svg viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 92 C 70 18, 200 4, 282 70 C 214 150, 82 168, 18 92 Z" fill="#4E8C3A"/>
+                        <path d="M18 92 C 100 86, 190 78, 282 70" fill="none" stroke="#2F5E24" stroke-width="3" stroke-linecap="round"/>
+                        <g fill="none" stroke="#2F5E24" stroke-width="1.6" stroke-linecap="round" opacity="0.8">
+                            <path d="M70 89 C 82 66, 96 50, 112 40"/><path d="M70 89 C 86 108, 100 122, 118 132"/>
+                            <path d="M130 84 C 144 60, 160 44, 178 34"/><path d="M130 84 C 146 104, 164 120, 184 130"/>
+                            <path d="M190 79 C 202 60, 216 50, 232 44"/><path d="M190 79 C 204 96, 220 106, 238 112"/>
+                        </g>
+                        <g>
+                            <circle cx="104" cy="62" r="13" fill="#6B4A22"/><circle cx="104" cy="62" r="8.5" fill="none" stroke="#3E2A12" stroke-width="1.5"/><circle cx="104" cy="62" r="4" fill="#3E2A12"/>
+                            <circle cx="158" cy="112" r="10" fill="#6B4A22"/><circle cx="158" cy="112" r="6" fill="none" stroke="#3E2A12" stroke-width="1.5"/><circle cx="158" cy="112" r="2.5" fill="#3E2A12"/>
+                            <circle cx="206" cy="60" r="8" fill="#7A5527"/><circle cx="206" cy="60" r="4.5" fill="none" stroke="#3E2A12" stroke-width="1.2"/>
+                            <circle cx="86" cy="112" r="6" fill="#7A5527"/>
+                        </g>
+                    </svg>
                 </div>
-            </div>
+                <div class="specimen-body">
+                    <div class="specimen-title">
+                        <h2>Early blight</h2>
+                        <span>Possible disease</span>
+                    </div>
+                    <dl>
+                        <dt>Treat</dt>
+                        <dd>Apply chlorothalonil or mancozeb. Prune lower leaves and stake plants.</dd>
+                        <dt>Prevent</dt>
+                        <dd>Rotate crops, mulch the soil, use drip irrigation.</dd>
+                    </dl>
+                </div>
+            </figure>
         </section>
 
-        <div class="weather-wrapper">
-            <div class="weather-card">
-                <div class="weather-main">
-                    <div class="weather-icon">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-                    </div>
-                    <div>
-                        <div class="weather-temp">28°C</div>
-                        <div class="weather-loc">Visakhapatnam, AP</div>
-                    </div>
-                </div>
-                <div class="weather-details">
-                    <div class="weather-detail-item">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a5 5 0 0 0 5-5c0-2-2-5-5-9-3 4-5 7-5 9a5 5 0 0 0 5 5Z"/></svg>
-                        <div class="weather-detail-info">
-                            <strong>65%</strong>
-                            <span data-lang="humidityLabel">Humidity</span>
-                        </div>
-                    </div>
-                    <div class="weather-detail-item">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 0 2.5-2.5H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/></svg>
-                        <div class="weather-detail-info">
-                            <strong>12 km/h</strong>
-                            <span data-lang="windLabel">Wind Speed</span>
-                        </div>
-                    </div>
-                    <div class="weather-detail-item">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>
-                        <div class="weather-detail-info">
-                            <strong data-lang="conditionGood">Good</strong>
-                            <span data-lang="conditionLabel">Soil Condition</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <a class="today" href="/weather" id="homeWeather">
+            <span class="today-temp" id="homeWeatherTemp">--°C</span>
+            <span>
+                <span class="today-place" id="homeWeatherLoc">Loading today's weather…</span>
+                <span class="today-facts">
+                    <span id="homeWeatherCondition"></span>
+                    <span>Humidity <span id="homeWeatherHumidity">--</span></span>
+                    <span>Wind <span id="homeWeatherWind">--</span></span>
+                </span>
+            </span>
+            <span class="today-link">5-day forecast and alerts</span>
+        </a>
 
-        <section class="section-padding">
-            <div class="section-header">
-                <h2 data-lang="ourFeatures">Smart Features for Smart Farming</h2>
-                <p data-lang="featuresSubtitle">Everything you need for a healthy harvest, right at your fingertips.</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.29 16.29 16 19"/></svg>
-                    </div>
-                    <h3 data-lang="featureDiseaseTitle">Disease Detection</h3>
-                    <p data-lang="featureDiseaseDesc">Upload photos of leaves or crops to get an instant AI diagnosis and actionable remedies.</p>
-                    <a href="/detect" class="feature-link" data-lang="featureTryNow">Try Scanner <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
-                    </div>
-                    <h3 data-lang="featureSchemeTitle">Govt Schemes</h3>
-                    <p data-lang="featureSchemeDesc">Stay updated with the latest PM-Kisan subsidies, crop insurance, and agricultural loans.</p>
-                    <a href="/schemes" class="feature-link" data-lang="featureViewSchemes">View Schemes <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                    </div>
-                    <h3 data-lang="featureVoiceTitle">Voice Assistant</h3>
-                    <p data-lang="featureVoiceDesc">Can't type? Speak to our multilingual AI assistant to get farming solutions in your local language.</p>
-                    <a href="/voice" class="feature-link" data-lang="featureGetHelp">Ask AI <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-                </div>
-            </div>
+        <section class="section" aria-labelledby="tasks-heading">
+            <h2 id="tasks-heading">What do you need today?</h2>
+            <ul class="tasks">
+                <li><a href="/detect">
+                    <span class="task-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></span>
+                    <span><h3>Check a sick plant</h3><p>Upload a leaf photo and get the likely disease, treatment and prevention.</p></span>
+                    <svg class="task-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </a></li>
+                <li><a href="/schemes">
+                    <span class="task-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10"/><path d="M19 21V10"/><path d="M9 21v-7"/><path d="M15 21v-7"/><path d="m2 10 10-7 10 7"/></svg></span>
+                    <span><h3>Find schemes you can apply for</h3><p>Income support, crop insurance, loans and subsidies, with the documents you need.</p></span>
+                    <svg class="task-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </a></li>
+                <li><a href="/weather">
+                    <span class="task-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg></span>
+                    <span><h3>Plan around the weather</h3><p>Five-day forecast with heavy rain, heat, frost and wind alerts for your area.</p></span>
+                    <svg class="task-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </a></li>
+                <li><a href="/chatbot">
+                    <span class="task-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                    <span><h3>Ask a farming question</h3><p>Pests, fertilizer, irrigation, soil health. Answers in your language.</p></span>
+                    <svg class="task-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </a></li>
+                <li><a href="/voice">
+                    <span class="task-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.8 2z"/></svg></span>
+                    <span><h3>Get advice by phone</h3><p>For farmers without a smartphone: how the phone helpline works.</p></span>
+                    <svg class="task-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </a></li>
+            </ul>
         </section>
 
-        <section class="how-it-works section-padding" id="how-it-works">
-            <div class="section-header">
-                <h2 data-lang="howItWorks">How It Works</h2>
-                <p>Three simple steps to protect your crops</p>
-            </div>
-            <div class="steps-container">
-                <div class="step-card">
-                    <div class="step-icon">1</div>
-                    <h3 data-lang="step1Title">Upload Photo</h3>
-                    <p data-lang="step1Desc">Take a clear picture of the affected plant leaf or crop area using your phone camera.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-icon">2</div>
-                    <h3 data-lang="step2Title">AI Analysis</h3>
-                    <p data-lang="step2Desc">Our advanced machine learning model instantly scans and identifies the specific disease.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-icon">3</div>
-                    <h3 data-lang="step3Title">Get Remedy</h3>
-                    <p data-lang="step3Desc">Receive detailed, step-by-step treatment plans and organic preventive advice.</p>
-                </div>
-            </div>
+        <section class="section" aria-labelledby="how-heading">
+            <h2 id="how-heading">How a leaf scan works</h2>
+            <ol class="steps">
+                <li><h3>Take a photo</h3><p>One leaf, in daylight, filling most of the frame. Plain background if you can.</p></li>
+                <li><h3>Upload it</h3><p>The scan checks that it is a leaf of a crop it knows, then compares it with {{ condition_count }} known conditions.</p></li>
+                <li><h3>Follow the steps</h3><p>If the scan can tell, you get treatment and prevention advice. If not, it says why. Always confirm with your agriculture officer.</p></li>
+            </ol>
         </section>
-    </main>
-
-    <footer class="footer">
-        <div class="footer-container">
-            <div>
-                <div class="footer-logo">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
-                    AgroVision
-                </div>
-                <p data-lang="footerTagline">Empowering farmers with modern AI technology for a better, healthier harvest tomorrow.</p>
-            </div>
-            <div>
-                <h3 class="brand-font" data-lang="footerQuickLinks">Quick Links</h3>
-                <ul>
-                    <li><a href="/detect" data-lang="navDetect">Disease Detection</a></li>
-                    <li><a href="/schemes" data-lang="navSchemes">Government Schemes</a></li>
-                    <li><a href="/voice" data-lang="navVoice">Voice Assistant</a></li>
-                    <li><a href="/chatbot">AI Chatbot</a></li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="brand-font" data-lang="footerContact">Contact & Support</h3>
-                <ul>
-                    <li><a href="#">📞 1800-123-4567 (Toll Free)</a></li>
-                    <li><a href="#">📧 support@agrovision.com</a></li>
-                    <li><a href="#">📍 Visakhapatnam, AP, India</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <span data-lang="copyright">&copy;</span> <span id="year"></span> AgroVision. <span data-lang="allRightsReserved">All rights reserved.</span>
-        </div>
-    </footer>
-
-    <nav class="mobile-bottom-nav">
-        <ul>
-            <li>
-                <a href="/" class="active">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    <span data-lang="navHome">Home</span>
-                </a>
-            </li>
-            <li>
-                <a href="/detect">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.29 16.29 16 19"/></svg>
-                    <span data-lang="mobileDetect">Detect</span>
-                </a>
-            </li>
-            <li>
-                <a href="/schemes">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
-                    <span data-lang="mobileSchemes">Schemes</span>
-                </a>
-            </li>
-            <li>
-                <a href="/voice">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                    <span data-lang="mobileHelp">Voice</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    
-    <div class="floating-actions">
-        <button class="action-btn" id="themeToggle" aria-label="Toggle Dark Mode">
-            <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-            </svg>
-        </button>
-        <button class="action-btn" id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})" aria-label="Back to top">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-        </button>
     </div>
+</main>
+{% endblock %}
 
-    <script>
-        // Dynamic Greeting Logic
-        document.addEventListener("DOMContentLoaded", () => {
-            const hour = new Date().getHours();
-            const greetingSpan = document.getElementById('greeting');
-            let greetText = "Welcome to";
-            
-            if (hour >= 5 && hour < 12) greetText = "Good Morning,";
-            else if (hour >= 12 && hour < 17) greetText = "Good Afternoon,";
-            else if (hour >= 17 && hour < 21) greetText = "Good Evening,";
-            
-            if(window.innerWidth > 768) {
-                 greetingSpan.innerHTML = `${greetText} <br><span>AgroVision</span>`;
-            }
-
-            document.getElementById('year').textContent = new Date().getFullYear();
-        });
-
-        // Scroll to Top Button Visibility
-        window.addEventListener('scroll', () => {
-            const backBtn = document.getElementById('backToTop');
-            if (window.scrollY > 300) {
-                backBtn.style.display = 'flex';
-            } else {
-                backBtn.style.display = 'none';
-            }
-        });
-
-        // Offline Status Indicators
-        window.addEventListener('offline', () => {
-            document.getElementById('offlineIndicator').classList.add('show');
-        });
-        window.addEventListener('online', () => {
-            document.getElementById('offlineIndicator').classList.remove('show');
-        });
-
-        // --- Theme Toggling Logic ---
-        const themeToggleBtn = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
-        
-        const savedTheme = localStorage.getItem('agrovision-theme');
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            setSunIcon();
+{% block scripts %}
+<script>
+    // Today's weather: live data from /api/weather (the server falls back to flagged sample data)
+    (async () => {
+        const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+        try {
+            const res = await fetch('/api/weather?location=' + encodeURIComponent('Visakhapatnam'));
+            if (!res.ok) throw new Error('weather unavailable');
+            const { weather } = await res.json();
+            set('homeWeatherTemp', `${weather.current.temperature}°C`);
+            set('homeWeatherLoc', weather.is_sample ? 'Sample weather (live data unavailable)' : `${weather.location} today`);
+            set('homeWeatherCondition', weather.current.condition || '');
+            set('homeWeatherHumidity', `${weather.current.humidity}%`);
+            set('homeWeatherWind', `${weather.current.wind_speed} m/s`);
+        } catch (e) {
+            set('homeWeatherLoc', 'Weather unavailable right now');
         }
-
-        themeToggleBtn.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            if (currentTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'light');
-                localStorage.setItem('agrovision-theme', 'light');
-                setMoonIcon();
-            } else {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('agrovision-theme', 'dark');
-                setSunIcon();
-            }
-        });
-
-        function setSunIcon() {
-            themeIcon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>';
-        }
-        function setMoonIcon() {
-            themeIcon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
-        }
-    </script>
-    
-    <script src="/static/js/translate.js"></script>
-    <script src="/static/js/lang.js"></script>
-    <script src="/static/js/chatbot.js"></script>
-</body>
-</html>
+    })();
+</script>
+{% endblock %}

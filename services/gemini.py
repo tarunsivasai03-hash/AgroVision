@@ -1,9 +1,15 @@
 """
 Gemini AI service: LLM integration, system prompts, translation, error helpers.
 """
+import base64
 import json
 import logging
 import os
+import re
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from flask import jsonify
 
@@ -29,7 +35,7 @@ Provide accurate, practical advice on crops, diseases, government schemes, soil,
 Keep answers clear, practical, and farmer-friendly.
 
 When giving advice:
-- Start with the likely issue or direct answer.
+- Start with the likely issue or direct answer. Do not open with a greeting.
 - Give 3 to 5 clear action steps.
 - Mention safety precautions for pesticides/fungicides.
 - Suggest checking with a local agriculture officer for severe crop loss, chemical dosage, or official scheme eligibility.
@@ -67,114 +73,128 @@ Format every answer exactly with these short sections:
 Use plain farmer-friendly English, keep it concise, and prefer 2 to 4 recommended schemes unless the user asks for one specific scheme."""
 
 # ---------------------------------------------------------------------------
-# Gemini LLM call
+# Gemini LLM call (REST)
 # ---------------------------------------------------------------------------
+# Uses the Gemini REST API through urllib rather than the Google SDK. urllib
+# verifies TLS with the operating system's certificate store, which works on
+# networks that inspect HTTPS (where the SDK's gRPC transport fails), and it
+# keeps the request timeout under our control.
 
-def generate_gemini_reply(user_message: str, system_prompt=None, api_key=None, model_name=None) -> str:
-    """Call Gemini with request-provided or environment API key and current model IDs."""
+_GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+GEMINI_TIMEOUT_SECONDS = float(os.environ.get("GEMINI_TIMEOUT_SECONDS", "30"))
+# "-latest" names are kept pointing at a current model by Google; fixed names such as
+# gemini-2.0-flash get retired (they now answer 404). Quota is counted per model, so
+# when one model's free allowance runs out the next one in this list can still answer.
+DEFAULT_MODEL = "gemini-flash-latest"
+_FALLBACK_MODELS = ["gemini-flash-latest", "gemini-flash-lite-latest"]
+
+# Models that answered 429 (quota/rate limit) are skipped until this monotonic time,
+# instead of paying for a failing call on every request.
+_cooldown_until = {}
+_COOLDOWN_MIN_SECONDS = 5.0
+_COOLDOWN_MAX_SECONDS = 900.0  # re-check at least every 15 minutes, e.g. after a daily reset
+
+
+class GeminiError(RuntimeError):
+    """Gemini could not produce an answer."""
+
+
+def _call_gemini(model: str, api_key: str, system_prompt: str, user_message: str, *,
+                 image_jpeg: bytes = None, schema: dict = None, timeout: float = None) -> str:
+    """One generateContent call. With `schema`, Gemini is forced to answer in that JSON shape."""
+    parts = [{"text": user_message}]
+    if image_jpeg is not None:
+        parts.append({"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(image_jpeg).decode("ascii")}})
+    body = {
+        "system_instruction": {"parts": [{"text": system_prompt}]},
+        "contents": [{"role": "user", "parts": parts}],
+    }
+    if schema is not None:
+        body["generationConfig"] = {
+            "responseMimeType": "application/json",
+            "responseSchema": schema,
+            "temperature": 0,
+        }
+    request = urllib.request.Request(
+        _GEMINI_URL.format(model=urllib.parse.quote(model, safe="-._")),
+        data=json.dumps(body).encode("utf-8"),
+        headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=timeout or GEMINI_TIMEOUT_SECONDS) as response:
+        data = json.loads(response.read().decode("utf-8"))
+
+    candidates = data.get("candidates") or []
+    parts = ((candidates[0].get("content") or {}).get("parts") or []) if candidates else []
+    text = "".join(part.get("text", "") for part in parts).strip()
+    if not text:
+        reason = candidates[0].get("finishReason") if candidates else (data.get("promptFeedback") or {}).get("blockReason")
+        raise GeminiError(f"Gemini returned no text (reason: {reason or 'unknown'}).")
+    return text
+
+
+def _retry_after_seconds(error_body: str) -> float:
+    """Seconds Gemini asks us to wait, from text like 'Please retry in 11h23m17.03s'."""
+    match = re.search(r"retry in (?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?", error_body or "")
+    if not match or not any(match.groups()):
+        return _COOLDOWN_MIN_SECONDS
+    hours, minutes, seconds = (float(g) if g else 0.0 for g in match.groups())
+    return hours * 3600 + minutes * 60 + seconds
+
+
+def _generate(system_prompt: str, user_message: str, api_key=None, model_name=None, **call_options) -> str:
+    """Try the configured model, then known fallbacks, until one returns text."""
     api_key = (api_key or os.environ.get("GEMINI_API_KEY", "")).strip()
-
     if not api_key:
-        raise ValueError("GEMINI_API_KEY is required. Provide it in your request payload or environment.")
+        raise GeminiError("GEMINI_API_KEY is not set.")
 
-    genai = None
-    use_new_sdk = False
-    try:
-        from google import genai as genai_module
-        genai = genai_module
-        use_new_sdk = True
-    except ImportError:
-        try:
-            import google.generativeai as genai_module
-            genai = genai_module
-        except ImportError as e:
-            logger.warning(f"Failed to import Gemini SDK: {e}")
-            raise ImportError(
-                "Gemini SDK not installed. Install google.generativeai or google.genai and restart the server."
-            ) from e
-
-    prompt = f"{(system_prompt or AGRO_SYSTEM_PROMPT)}\n\nUser Question: {user_message}\n\nAssistant Response:"
-    preferred = (model_name or os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")).strip()
-    model_candidates = [preferred, "gemini-2.5-flash", "gemini-2.0-flash"]
-    model_candidates = [m for m in dict.fromkeys(model_candidates) if m]
+    preferred = (model_name or os.environ.get("GEMINI_MODEL", DEFAULT_MODEL)).strip()
+    models = [m for m in dict.fromkeys([preferred, *_FALLBACK_MODELS]) if m]
 
     last_error = None
-
-    if use_new_sdk:
-        try:
-            client = genai.Client(api_key=api_key)
-        except TypeError:
-            client = genai.Client()
-
-        for model_name in model_candidates:
-            try:
-                response = client.models.generate_content(model=model_name, contents=prompt)
-                if getattr(response, "text", None):
-                    return response.text.strip()
-            except Exception as exc:
-                last_error = exc
-                logger.warning(f"Gemini model '{model_name}' failed: {exc}")
-        raise RuntimeError(
-            "Gemini request failed for all model candidates." +
-            (f" Last error: {last_error}" if last_error else "")
-        ) from last_error
-
-    genai.configure(api_key=api_key)
-    available_models = []
-    if hasattr(genai, "list_models"):
-        try:
-            models = genai.list_models()
-            for model in models:
-                if isinstance(model, dict):
-                    raw_name = model.get("name") or model.get("id") or ""
-                else:
-                    raw_name = getattr(model, "name", None) or getattr(model, "id", None) or ""
-                # Normalize: list_models returns "models/gemini-..." but candidates use "gemini-..."
-                short_name = raw_name.split("/")[-1] if "/" in raw_name else raw_name
-                available_models.append(short_name)
-        except Exception as exc:
-            logger.info(f"Could not list Gemini models: {exc}")
-
-    for model_name in model_candidates:
-        if available_models and model_name not in available_models:
+    for model in models:
+        if _cooldown_until.get(model, 0) > time.monotonic():
+            last_error = last_error or GeminiError(f"{model} is over its quota for now")
             continue
         try:
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt)
-            if hasattr(response, "text") and response.text:
-                return response.text.strip()
-            if getattr(response, "candidates", None):
-                parts = response.candidates[0].content.parts
-                if parts and hasattr(parts[0], "text"):
-                    return parts[0].text.strip()
-            return str(response).strip()
-        except Exception as exc:
+            return _call_gemini(model, api_key, system_prompt, user_message, **call_options)
+        except urllib.error.HTTPError as exc:
             last_error = exc
-            logger.warning(f"Gemini model '{model_name}' failed: {exc}")
+            logger.warning(f"Gemini model '{model}' failed: HTTP {exc.code}")
+            if exc.code == 429:
+                wait = _retry_after_seconds(exc.read().decode("utf-8", "replace"))
+                _cooldown_until[model] = time.monotonic() + min(max(wait, _COOLDOWN_MIN_SECONDS), _COOLDOWN_MAX_SECONDS)
+            # A bad key or bad request will fail the same way on every model.
+            if exc.code in (400, 401, 403):
+                break
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            last_error = exc
+            logger.warning(f"Gemini model '{model}' unreachable: {type(exc).__name__}")
+            break  # network problem: other models won't do better
+        except GeminiError as exc:
+            last_error = exc
+            logger.warning(f"Gemini model '{model}': {exc}")
 
-    # If available_models filtering skipped all candidates but none actually errored,
-    # retry without filtering before giving up.
-    if available_models and last_error is None:
-        logger.info("All model candidates were filtered out by list_models. Retrying without filter.")
-        for model_name in model_candidates:
-            try:
-                model = genai.GenerativeModel(model_name)
-                response = model.generate_content(prompt)
-                if hasattr(response, "text") and response.text:
-                    return response.text.strip()
-                if getattr(response, "candidates", None):
-                    parts = response.candidates[0].content.parts
-                    if parts and hasattr(parts[0], "text"):
-                        return parts[0].text.strip()
-                return str(response).strip()
-            except Exception as exc:
-                last_error = exc
-                logger.warning(f"Gemini model '{model_name}' (unfiltered retry) failed: {exc}")
+    raise GeminiError(f"Gemini request failed: {last_error}") from last_error
 
-    raise RuntimeError(
-        "Gemini request failed for all model candidates." +
-        (f" Last error: {last_error}" if last_error else "")
-    ) from last_error
+
+def generate_gemini_reply(user_message: str, system_prompt=None, api_key=None, model_name=None) -> str:
+    """Ask Gemini for a text reply."""
+    return _generate(system_prompt or AGRO_SYSTEM_PROMPT, user_message, api_key, model_name)
+
+
+def generate_gemini_json(user_message: str, system_prompt: str, schema: dict, image_jpeg: bytes = None,
+                         api_key=None, model_name=None, timeout: float = None) -> dict:
+    """Ask Gemini (optionally about an image) for an answer that matches a JSON schema."""
+    text = _generate(system_prompt, user_message, api_key, model_name,
+                     image_jpeg=image_jpeg, schema=schema, timeout=timeout)
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise GeminiError("Gemini did not return valid JSON.") from exc
+    if not isinstance(data, dict):
+        raise GeminiError("Gemini returned JSON that is not an object.")
+    return data
 
 
 # ---------------------------------------------------------------------------
@@ -197,21 +217,39 @@ def extract_json_object(text: str) -> dict:
 
 
 def translate_texts_with_gemini(texts, target_language: str, api_key=None):
-    """Translate a list of strings using Gemini."""
-    payload = {
-        "target_language": target_language,
-        "texts": texts,
-    }
-    reply = generate_gemini_reply(
-        json.dumps(payload, ensure_ascii=False),
-        TRANSLATION_SYSTEM_PROMPT,
-        api_key=api_key,
-    )
-    parsed = extract_json_object(reply)
-    translations = parsed.get("translations")
-    if not isinstance(translations, list) or len(translations) != len(texts):
-        raise ValueError("Translation response did not match requested text count.")
-    return [str(item) for item in translations]
+    """
+    Translate a list of strings. Cached translations are reused, only the missing strings go to
+    Gemini, and only translations that pass validation are kept. Strings that could not be
+    translated come back unchanged (English), so one bad string never blanks a page.
+    Raises only when nothing at all could be translated.
+    """
+    from services import translation_cache  # local import: the cache is optional for callers of this module
+
+    cached = translation_cache.get_many(target_language, texts)
+    missing = list(dict.fromkeys(t for t in texts if t not in cached))
+
+    fresh = {}
+    if missing:
+        payload = {"target_language": target_language, "texts": missing}
+        try:
+            reply = generate_gemini_reply(
+                json.dumps(payload, ensure_ascii=False), TRANSLATION_SYSTEM_PROMPT, api_key=api_key)
+            translations = extract_json_object(reply).get("translations")
+            if not isinstance(translations, list) or len(translations) != len(missing):
+                raise ValueError("Translation response did not match requested text count.")
+            fresh = {src: str(out) for src, out in zip(missing, translations)}
+            translation_cache.put_many(target_language, fresh)
+        except Exception:
+            if not cached:
+                raise
+            logger.warning("Translation service unavailable; using cached translations only.")
+            fresh = {}
+
+    result = []
+    for text in texts:
+        out = cached.get(text) or (fresh.get(text) if translation_cache.is_valid_translation(text, fresh.get(text)) else None)
+        result.append(out or text)
+    return result
 
 
 # ---------------------------------------------------------------------------

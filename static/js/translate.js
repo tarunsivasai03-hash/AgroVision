@@ -103,9 +103,9 @@
     document.documentElement.lang = 'en';
   }
 
-  function getStoredGeminiApiKey() {
-    return localStorage.getItem('agrovision_gemini_api_key') || '';
-  }
+  // Older versions stored a Gemini API key in the browser; remove it. The key
+  // now lives only on the server.
+  try { localStorage.removeItem('agrovision_gemini_api_key'); } catch (e) { /* storage unavailable */ }
 
   function getCacheKey(targetLanguage, texts) {
     return `agrovision-translation:${location.pathname}:${targetLanguage}:${btoa(unescape(encodeURIComponent(texts.join('\\u0001')))).slice(0, 80)}`;
@@ -122,7 +122,6 @@
       body: JSON.stringify({
         target_language: languageName(targetLanguage),
         texts,
-        gemini_api_key: getStoredGeminiApiKey(),
       }),
     });
     const data = await response.json();
@@ -190,7 +189,7 @@
       const status = error.httpStatus || 0;
       const isPermanent = status === 503 || status === 401;
       if (isPermanent) {
-        showTranslationError('Translation is unavailable. Check your Gemini API key and try again.');
+        showTranslationError('Translation is unavailable right now. Please try again later.');
         disableTranslation();
       } else {
         showTranslationError(error.message);
@@ -211,7 +210,7 @@
       toast.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#0f172a;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.2);font:500 14px Inter,system-ui;max-width:min(92vw,560px);';
       document.body.appendChild(toast);
     }
-    toast.textContent = message || 'Could not translate this page. Check your Gemini API key and try again.';
+    toast.textContent = message || 'Could not translate this page. Please try again later.';
     clearTimeout(toast.__timer);
     toast.__timer = setTimeout(() => toast.remove(), 5000);
   }

@@ -1,8 +1,12 @@
 /**
- * Government Schemes page — loads schemes from API + Gemini advisor
+ * Government schemes page: scheme list with filters, the scheme advisor,
+ * and the plain-language guide for a single scheme.
  */
 (function () {
+  'use strict';
+
   const grid = document.getElementById('schemesGrid');
+  const countLabel = document.getElementById('schemeCount');
   const searchInput = document.getElementById('searchInput');
   const stateFilter = document.getElementById('stateFilter');
   const typeFilter = document.getElementById('typeFilter');
@@ -10,197 +14,117 @@
   const advisorBtn = document.getElementById('advisorBtn');
   const advisorResult = document.getElementById('advisorResult');
   const advisorLoading = document.getElementById('advisorLoading');
-  const modal = document.getElementById('infoModal');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalBody = document.getElementById('modalBody');
-  const modalActions = document.getElementById('modalActions');
+  const dialog = document.getElementById('infoModal');
+  const dialogTitle = document.getElementById('modalTitle');
+  const dialogBody = document.getElementById('modalBody');
+  const dialogActions = document.getElementById('modalActions');
+
+  const DEFAULT_QUESTION = 'Which schemes can I apply for, and what documents do I need?';
+  const TYPE_LABELS = {
+    financial: 'Income and credit',
+    insurance: 'Crop insurance',
+    infrastructure: 'Farm infrastructure',
+  };
+  const TYPE_ICONS = {
+    financial: '<path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+    insurance: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    infrastructure: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/>',
+  };
+  const EXTERNAL_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
 
   let schemes = [];
-  let activeScheme = null;
-  const weatherForm = document.getElementById('weatherForm');
-  const weatherLocationInput = document.getElementById('weatherLocation');
-  const weatherResult = document.getElementById('weatherResult');
+
+  // --- Formatting helpers ---------------------------------------------------
 
   function escapeHtml(text) {
     const d = document.createElement('div');
-    d.textContent = text;
+    d.textContent = text == null ? '' : String(text);
     return d.innerHTML;
   }
 
-  function formatAiResponse(text) {
-    if (!text) return '';
-    const lines = escapeHtml(text).split('\n');
-    let html = '';
-    let inList = false;
-
-    for (const rawLine of lines) {
-      const line = rawLine.trim();
-      if (!line) {
-        if (inList) {
-          html += '</ul>';
-          inList = false;
-        }
-        continue;
-      }
-
-      const heading = line.match(/^##+\s*(.+)$/);
-      const bullet = line.match(/^[\-\*\•]\s+(.+)$/);
-      if (heading) {
-        if (inList) {
-          html += '</ul>';
-          inList = false;
-        }
-        html += `<h3>${heading[1]}</h3>`;
-        continue;
-      }
-      if (bullet) {
-        if (!inList) {
-          inList = true;
-          html += '<ul class="ai-list">';
-        }
-        html += `<li>${bullet[1]}</li>`;
-        continue;
-      }
-
-      if (inList) {
-        html += '</ul>';
-        inList = false;
-      }
-      html += `<p>${line}</p>`;
-    }
-
-    if (inList) html += '</ul>';
-    return html;
-  }
-
-  function renderWeatherResult(weather) {
-    if (!weather || weather.error) {
-      return `<p class="load-error">${escapeHtml(weather?.error || 'Unable to load weather data.')}</p>`;
-    }
-
-    let alertsHtml = '';
-    if (weather.alerts && weather.alerts.length) {
-      alertsHtml = weather.alerts.map((alert) => `
-        <div class="weather-alert">
-          <strong>${escapeHtml(alert.event || 'Weather Alert')}</strong>
-          <p>${escapeHtml(alert.description || alert.sender_name || '')}</p>
-        </div>
-      `).join('');
-    }
-
-    const forecastHtml = weather.forecast.map((day) => `
-      <div class="weather-day">
-        <strong>${escapeHtml(day.date)}</strong>
-        <p>${escapeHtml(day.condition)}</p>
-        <p>${day.temp_max}° / ${day.temp_min}°  ·  ${day.precipitation}% rain
-        </p>
-      </div>
-    `).join('');
-
-    return `
-      <div class="weather-summary">
-        <div>
-          <p class="weather-temp">${weather.current.temperature}°C</p>
-          <p class="weather-meta">${escapeHtml(weather.current.condition)} · Feels like ${weather.current.feels_like}°C</p>
-          <p class="weather-meta">Humidity ${weather.current.humidity}% · Wind ${weather.current.wind_speed} m/s</p>
-        </div>
-        <p class="weather-meta"><strong>${escapeHtml(weather.location)}</strong></p>
-      </div>
-      ${alertsHtml}
-      <div class="weather-forecast">${forecastHtml}</div>
-    `;
-  }
-
-  async function fetchWeather(location) {
-    if (!weatherResult) return;
-    if (!location) {
-      weatherResult.innerHTML = '<p class="load-error">Please enter a location to fetch weather.</p>';
-      return;
-    }
-
-    weatherResult.innerHTML = '<p>Loading weather information…</p>';
-    try {
-      const res = await fetch(`/api/weather?location=${encodeURIComponent(location)}`);
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Unable to fetch weather.');
-      }
-      weatherResult.innerHTML = renderWeatherResult(data.weather);
-    } catch (err) {
-      weatherResult.innerHTML = `<p class="load-error">${escapeHtml(err.message)}</p>`;
-    }
-  }
-
-  function onWeatherSubmit(event) {
-    event.preventDefault();
-    const query = weatherLocationInput.value.trim();
-    fetchWeather(query);
-  }
-
-  function badgeClass(badge) {
-    return badge === 'state' ? 'badge-state' : 'badge-central';
-  }
-
-  function badgeLabel(badge) {
-    return badge === 'state' ? 'State Govt' : 'Central Govt';
+  function titleCase(slug) {
+    return String(slug || '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   function formatInline(text) {
-    return escapeHtml(text || '')
+    return escapeHtml(text)
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/`([^`]+)`/g, '<code>$1</code>');
   }
 
+  /** Render Gemini's markdown-ish answer (headings, bullets, numbered steps) safely. */
   function renderAiResponse(text) {
     const cleaned = (text || '').trim();
-    if (!cleaned) return '<div class="ai-response"><p>No response received.</p></div>';
+    if (!cleaned) return '<p>No answer was returned. Try again.</p>';
 
-    const lines = cleaned.split(/\r?\n/);
     const sections = [];
-    let current = { title: '', items: [], paragraphs: [] };
+    let current = { title: '', blocks: [] };
+    const pushList = (type, item) => {
+      const last = current.blocks[current.blocks.length - 1];
+      if (last && last.type === type) last.items.push(item);
+      else current.blocks.push({ type, items: [item] });
+    };
 
-    function pushCurrent() {
-      if (current.title || current.items.length || current.paragraphs.length) {
-        sections.push(current);
-      }
-    }
-
-    lines.forEach((rawLine) => {
-      const line = rawLine.trim();
+    cleaned.split(/\r?\n/).forEach((raw) => {
+      const line = raw.trim();
       if (!line) return;
-
-      const heading = line.match(/^#{1,3}\s+(.+)$/);
+      const heading = line.match(/^#{1,4}\s+(.+)$/);
+      const bullet = line.match(/^[-*•]\s+(.+)$/);
+      const numbered = line.match(/^\d+[.)]\s+(.+)$/);
       if (heading) {
-        pushCurrent();
-        current = { title: heading[1].trim(), items: [], paragraphs: [] };
-        return;
+        if (current.title || current.blocks.length) sections.push(current);
+        current = { title: heading[1], blocks: [] };
+      } else if (bullet) {
+        pushList('ul', bullet[1]);
+      } else if (numbered) {
+        pushList('ol', numbered[1]);
+      } else {
+        current.blocks.push({ type: 'p', text: line });
       }
-
-      const bullet = line.match(/^[-*]\s+(.+)$/);
-      if (bullet) {
-        current.items.push(bullet[1].trim());
-        return;
-      }
-
-      current.paragraphs.push(line);
     });
-    pushCurrent();
-
-    if (!sections.length) {
-      return `<div class="ai-response"><p>${formatInline(cleaned).replace(/\n/g, '<br>')}</p></div>`;
-    }
+    if (current.title || current.blocks.length) sections.push(current);
 
     const html = sections.map((section) => {
       const title = section.title ? `<h3>${formatInline(section.title)}</h3>` : '';
-      const paragraphs = section.paragraphs.map((p) => `<p>${formatInline(p)}</p>`).join('');
-      const items = section.items.length
-        ? `<ul>${section.items.map((item) => `<li>${formatInline(item)}</li>`).join('')}</ul>`
-        : '';
-      const sectionClass = section.title ? 'ai-section' : 'response-note';
-      return `<section class="${sectionClass}">${title}${paragraphs}${items}</section>`;
+      const body = section.blocks.map((b) => (b.type === 'p'
+        ? `<p>${formatInline(b.text)}</p>`
+        : `<${b.type}>${b.items.map((i) => `<li>${formatInline(i)}</li>`).join('')}</${b.type}>`)).join('');
+      return `<section>${title}${body}</section>`;
     }).join('');
-
     return `<div class="ai-response">${html}</div>`;
+  }
+
+  function notice(kind, text) {
+    return `<p class="notice ${kind}" role="note"><span>${escapeHtml(text)}</span></p>`;
+  }
+
+  function fallbackNotice(data) {
+    return data && data.ai_powered === false
+      ? notice('notice-warn', 'The AI advisor is not available right now, so this is general information rather than advice for your farm.')
+      : '';
+  }
+
+  async function postJson(url, payload) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `The server returned an error (${res.status}).`);
+    return data;
+  }
+
+  function errorMessage(err) {
+    return !navigator.onLine || err instanceof TypeError
+      ? 'Could not reach AgroVision. Check your internet connection and try again.'
+      : err.message;
+  }
+
+  // --- Scheme list ------------------------------------------------------------
+
+  function governmentLabel(s) {
+    return s.location === 'national' ? 'Central government' : `${titleCase(s.location)} government`;
   }
 
   function renderCard(s) {
@@ -208,76 +132,58 @@
     card.className = 'scheme-card';
     card.dataset.location = s.location;
     card.dataset.type = s.type;
-    card.dataset.id = s.id;
+    card.dataset.search = [s.name, s.description, s.benefit, s.eligibility].join(' ').toLowerCase();
+    const typeIcon = TYPE_ICONS[s.type] || TYPE_ICONS.financial;
     card.innerHTML = `
-      <div class="card-header">
-        <div class="scheme-icon">${escapeHtml(s.icon)}</div>
-        <span class="badge ${badgeClass(s.badge)}">${badgeLabel(s.badge)}</span>
+      <div class="scheme-meta">
+        <span class="scheme-type"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${typeIcon}</svg>${escapeHtml(TYPE_LABELS[s.type] || titleCase(s.type))}</span>
+        <span class="scheme-gov ${s.location === 'national' ? '' : 'state'}">${escapeHtml(governmentLabel(s))}</span>
       </div>
-      <div class="card-body">
-        <h3>${escapeHtml(s.name)}</h3>
-        <p>${escapeHtml(s.description)}</p>
-        <div class="benefit-box">
-          <span class="benefit-icon">✓</span>
-          <strong>${escapeHtml(s.benefit)}</strong>
-        </div>
-        <p class="eligibility-snippet"><strong>Eligibility:</strong> ${escapeHtml(s.eligibility)}</p>
-      </div>
-      <div class="card-footer">
-        <button type="button" class="btn btn-outline btn-full btn-ai-details" data-id="${escapeHtml(s.id)}">✨ AI Guide</button>
-        <a class="btn btn-primary btn-full" href="${escapeHtml(s.url)}" target="_blank" rel="noopener">Apply / Portal</a>
+      <h3>${escapeHtml(s.name)}</h3>
+      <p class="desc">${escapeHtml(s.description)}</p>
+      <p class="benefit">${escapeHtml(s.benefit)}</p>
+      <p class="eligibility"><strong>Who can apply:</strong> ${escapeHtml(s.eligibility)}</p>
+      <div class="scheme-actions">
+        <button type="button" class="btn btn-secondary">Explain in simple words</button>
+        <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener">Official website ${EXTERNAL_ICON}<span class="visually-hidden"> (opens in a new tab)</span></a>
       </div>
     `;
-    card.querySelector('.btn-ai-details').addEventListener('click', () => openSchemeAI(s));
+    card.querySelector('button').addEventListener('click', () => openGuide(s));
     return card;
   }
 
   function populateStateFilter() {
-    const options = [
-      { value: 'all', label: 'All Locations' },
-      { value: 'national', label: 'National (Central)' },
-    ];
-    const seen = new Set(['all', 'national']);
-    schemes.forEach((s) => {
-      if (s.location !== 'national' && !seen.has(s.location)) {
-        seen.add(s.location);
-        const label = s.location.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-        options.push({ value: s.location, label });
-      }
-    });
-    stateFilter.innerHTML = '';
-    options.forEach((st) => {
+    const locations = [...new Set(schemes.map((s) => s.location))]
+      .sort((a, b) => (a === 'national' ? -1 : b === 'national' ? 1 : a.localeCompare(b)));
+    stateFilter.innerHTML = '<option value="all">All governments</option>';
+    locations.forEach((loc) => {
       const opt = document.createElement('option');
-      opt.value = st.value;
-      opt.textContent = st.label;
+      opt.value = loc;
+      opt.textContent = loc === 'national' ? 'Central government' : `${titleCase(loc)} government`;
       stateFilter.appendChild(opt);
     });
   }
 
   function filterSchemes() {
-    const searchTerm = searchInput.value.toLowerCase();
-    const stateValue = stateFilter.value;
-    const typeValue = typeFilter.value;
-    let visibleCount = 0;
+    const term = searchInput.value.trim().toLowerCase();
+    const state = stateFilter.value;
+    const type = typeFilter.value;
+    let visible = 0;
 
-    grid.querySelectorAll('.empty-state').forEach((el) => el.remove());
-    document.querySelectorAll('.scheme-card').forEach((card) => {
-      const title = card.querySelector('h3').textContent.toLowerCase();
-      const desc = card.querySelector('p').textContent.toLowerCase();
-      const location = card.getAttribute('data-location');
-      const type = card.getAttribute('data-type');
-      const matchesSearch = title.includes(searchTerm) || desc.includes(searchTerm);
-      const matchesState = stateValue === 'all' || location === stateValue;
-      const matchesType = typeValue === 'all' || type === typeValue;
-      const isVisible = matchesSearch && matchesState && matchesType;
-      card.style.display = isVisible ? 'flex' : 'none';
-      if (isVisible) visibleCount += 1;
+    grid.querySelectorAll('.list-message').forEach((el) => el.remove());
+    grid.querySelectorAll('.scheme-card').forEach((card) => {
+      const show = (!term || card.dataset.search.includes(term))
+        && (state === 'all' || card.dataset.location === state)
+        && (type === 'all' || card.dataset.type === type);
+      card.hidden = !show;
+      if (show) visible += 1;
     });
 
-    if (!visibleCount && schemes.length) {
+    countLabel.textContent = `Showing ${visible} of ${schemes.length}`;
+    if (!visible && schemes.length) {
       const empty = document.createElement('p');
-      empty.className = 'empty-state';
-      empty.textContent = 'No schemes match these filters. Try another state, type, or search term.';
+      empty.className = 'list-message';
+      empty.textContent = 'No schemes match. Clear the search or choose "All governments" and "All types".';
       grid.appendChild(empty);
     }
   }
@@ -285,181 +191,95 @@
   async function loadSchemes() {
     try {
       const res = await fetch('/api/schemes');
-      const data = await res.json();
-      schemes = data.schemes || [];
-      grid.innerHTML = '';
+      if (!res.ok) throw new Error(`The server returned an error (${res.status}).`);
+      schemes = (await res.json()).schemes || [];
+      grid.replaceChildren(...schemes.map(renderCard));
       if (!schemes.length) {
-        grid.innerHTML = '<p class="empty-state">No schemes are available right now.</p>';
+        grid.innerHTML = '<p class="list-message">No schemes are listed yet.</p>';
         return;
       }
-      schemes.forEach((s) => grid.appendChild(renderCard(s)));
       populateStateFilter();
       filterSchemes();
-    } catch (e) {
-      grid.innerHTML = '<p class="load-error">Could not load schemes. Refresh the page.</p>';
-      console.error(e);
+    } catch (err) {
+      grid.innerHTML = `<p class="list-message">Could not load schemes. ${escapeHtml(errorMessage(err))}</p>`;
     }
   }
 
-  async function openSchemeAI(scheme) {
-    activeScheme = scheme;
-    modalTitle.textContent = scheme.name;
-    modalBody.innerHTML = '<p class="modal-loading">Generating personalized guide with Gemini...</p>';
-    modalActions.innerHTML = '';
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
+  // --- Scheme guide dialog ----------------------------------------------------
 
-    const state = document.getElementById('advisorState')?.value || 'India';
+  function setGuideActions(scheme) {
+    dialogActions.innerHTML = `
+      <a class="btn btn-primary" href="${escapeHtml(scheme.url)}" target="_blank" rel="noopener">Open official website<span class="visually-hidden"> (opens in a new tab)</span></a>
+      <button type="button" class="btn btn-secondary" data-close>Close</button>
+    `;
+    dialogActions.querySelector('[data-close]').addEventListener('click', () => dialog.close());
+  }
+
+  async function openGuide(scheme) {
+    dialogTitle.textContent = scheme.name;
+    dialogBody.innerHTML = '<p class="guide-loading"><span class="spinner" aria-hidden="true"></span>Writing a simple guide to this scheme…</p>';
+    setGuideActions(scheme);
+    dialog.showModal();
+
+    const state = document.getElementById('advisorState').value || 'India';
     try {
-      const res = await fetch(`/api/schemes/${scheme.id}/explain`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          state,
-          question: 'Explain eligibility, required documents, step-by-step application, and benefits for a small farmer.',
-        }),
+      const data = await postJson(`/api/schemes/${encodeURIComponent(scheme.id)}/explain`, {
+        state,
+        question: 'Explain who can apply, the documents needed, the steps to apply, and the benefit, for a small farmer.',
       });
-      const data = await res.json();
-      const text = data.response || data.error || 'Unable to load AI guide.';
-      modalBody.innerHTML = renderAiResponse(text);
-      modalActions.innerHTML = `
-        <a class="btn btn-primary" href="${escapeHtml(scheme.url)}" target="_blank" rel="noopener">Official Portal</a>
-        <button type="button" class="btn btn-outline" id="modalCloseBtn">Close</button>
-      `;
-      document.getElementById('modalCloseBtn').onclick = () => {
-        modal.classList.remove('show');
-        document.body.style.overflow = 'auto';
-      };
-    } catch (e) {
-      const fallbackResponse = `
-## Eligibility & Quick Guide for ${escapeHtml(scheme.name)}
-
-This is a general farming support program. Here are typical requirements:
-
-### Basic Eligibility
-- Indian farmer with valid land records
-- Farming as primary occupation
-- Adheres to scheme-specific conditions
-
-### Required Documents
-- Land records (Patta/Khata/Record of Rights)
-- Aadhar Card
-- Bank Account (IFSC code needed)
-- Farmer ID or proof of occupation
-
-### How To Apply
-- Visit the official scheme portal
-- Register with your state agriculture office
-- Submit required documents
-- Wait for verification and approval
-
-### Next Steps
-1. Visit the official portal (link below)
-2. Check state-specific guidelines
-3. Contact your local agriculture officer for detailed eligibility
-4. Prepare documents in advance
-
-For detailed information and to apply, please visit the official portal.`;
-      
-      modalBody.innerHTML = renderAiResponse(fallbackResponse);
-      modalActions.innerHTML = `
-        <a class="btn btn-primary" href="${escapeHtml(scheme.url)}" target="_blank" rel="noopener">Official Portal</a>
-        <button type="button" class="btn btn-outline" id="modalCloseBtn">Close</button>
-      `;
-      document.getElementById('modalCloseBtn').onclick = () => {
-        modal.classList.remove('show');
-        document.body.style.overflow = 'auto';
-      };
+      dialogBody.innerHTML = fallbackNotice(data) + renderAiResponse(data.response);
+    } catch (err) {
+      const docs = (scheme.documents || []).map((d) => `<li>${escapeHtml(d)}</li>`).join('');
+      dialogBody.innerHTML = notice('notice-warn', `Could not write a guide: ${errorMessage(err)} Here are the basic details.`)
+        + `<div class="ai-response">
+             <section><h3>Benefit</h3><p>${escapeHtml(scheme.benefit)}</p></section>
+             <section><h3>Who can apply</h3><p>${escapeHtml(scheme.eligibility)}</p></section>
+             ${docs ? `<section><h3>Documents</h3><ul>${docs}</ul></section>` : ''}
+           </div>`;
     }
   }
 
-  function closeModal(e) {
-    if (e.target.id === 'infoModal') {
-      modal.classList.remove('show');
-      document.body.style.overflow = 'auto';
-    }
-  }
+  document.getElementById('closeModalBtn').addEventListener('click', () => dialog.close());
+  // Close when the backdrop (outside the dialog box) is clicked.
+  dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+
+  // --- Advisor ----------------------------------------------------------------
 
   async function submitAdvisor(e) {
     e.preventDefault();
-    const message = document.getElementById('advisorMessage').value.trim();
-    if (!message) return;
-
-    if (advisorBtn) advisorBtn.disabled = true;
-    advisorLoading.style.display = 'flex';
-    advisorResult.style.display = 'none';
-
-    const payload = {
-      message,
-      state: document.getElementById('advisorState').value,
-      crop: document.getElementById('advisorCrop').value.trim() || 'not specified',
-      land_acres: document.getElementById('advisorLand').value.trim() || 'not specified',
-    };
+    const message = document.getElementById('advisorMessage').value.trim() || DEFAULT_QUESTION;
+    advisorBtn.disabled = true;
+    advisorLoading.classList.add('show');
+    advisorResult.innerHTML = '';
 
     try {
-      const res = await fetch('/api/schemes/advise', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      const data = await postJson('/api/schemes/advise', {
+        message,
+        state: document.getElementById('advisorState').value,
+        crop: document.getElementById('advisorCrop').value.trim(),
+        land_acres: document.getElementById('advisorLand').value.trim(),
       });
-      const data = await res.json();
-      advisorResult.innerHTML = renderAiResponse(data.response || data.error || 'No response');
-      advisorResult.style.display = 'block';
+      advisorResult.innerHTML = fallbackNotice(data) + renderAiResponse(data.response);
     } catch (err) {
-      const fallbackResponse = `
-## Scheme Recommendations Based on Your Profile
-
-Based on your farming profile, here are some general government schemes that may be useful:
-
-### Popular Schemes for Farmers
-- **PM-KISAN**: Direct income support program (₹6,000/year in installments)
-- **Pradhan Mantri Fasal Bima Yojana (PMFBY)**: Crop insurance for weather risks and crop failure
-- **Pradhan Mantri Kisan Samman Nidhi**: Agricultural income support scheme
-- **State-specific subsidies**: Check with your state agriculture office for crop-specific support
-
-### Next Steps
-1. **Verify your eligibility** with your state agriculture office
-2. **Gather required documents**: Land records, ID proof, bank account details
-3. **Visit official portals** to check latest scheme details
-4. **Contact local CSC or agriculture officer** for personalized guidance
-5. **Apply online or through authorized centers**
-
-### Important Notes
-- Schemes vary by state and can change annually
-- Some schemes have specific eligibility criteria (land size, crop type, income limit)
-- Proper documentation is essential for approval
-- Contact your local agriculture department for the most current information
-
-For personalized recommendations, please contact your local agriculture office or visit state government websites.`;
-      
-      advisorResult.innerHTML = renderAiResponse(fallbackResponse);
-      advisorResult.style.display = 'block';
+      advisorResult.innerHTML = notice('notice-danger', errorMessage(err));
     } finally {
-      advisorLoading.style.display = 'none';
-      if (advisorBtn) advisorBtn.disabled = false;
+      advisorLoading.classList.remove('show');
+      advisorBtn.disabled = false;
     }
   }
 
-  function attachSuggestionButtons() {
-    document.querySelectorAll('.suggestion-btn').forEach((button) => {
-      button.addEventListener('click', () => {
-        const prompt = button.dataset.prompt || '';
-        const messageField = document.getElementById('advisorMessage');
-        if (messageField) {
-          messageField.value = prompt;
-          messageField.focus();
-        }
-      });
+  document.querySelectorAll('.suggestion-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const field = document.getElementById('advisorMessage');
+      field.value = button.dataset.prompt || '';
+      field.focus();
     });
-  }
+  });
 
-  if (searchInput) searchInput.addEventListener('input', filterSchemes);
-  if (stateFilter) stateFilter.addEventListener('change', filterSchemes);
-  if (typeFilter) typeFilter.addEventListener('change', filterSchemes);
-  if (advisorForm) advisorForm.addEventListener('submit', submitAdvisor);
-  if (weatherForm) weatherForm.addEventListener('submit', onWeatherSubmit);
-  if (modal) modal.addEventListener('click', closeModal);
-  attachSuggestionButtons();
+  searchInput.addEventListener('input', filterSchemes);
+  stateFilter.addEventListener('change', filterSchemes);
+  typeFilter.addEventListener('change', filterSchemes);
+  advisorForm.addEventListener('submit', submitAdvisor);
 
   loadSchemes();
 })();

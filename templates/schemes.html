@@ -1,618 +1,161 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Government Schemes - AgroVision</title>
-    
-    <!-- Typography: Inter for body, Outfit for headings/branding -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- GLOBAL DESIGN SYSTEM VARIABLES --- */
-        :root {
-            --primary: #10b981;
-            --primary-dark: #059669;
-            --primary-light: #d1fae5;
-            
-            --bg-body: #f8fafc;
-            --bg-surface: #ffffff;
-            
-            --text-heading: #0f172a;
-            --text-body: #334155;
-            --text-muted: #64748b;
-            
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --border-light: #e2e8f0;
-            
-            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.08);
-            --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            --radius-md: 12px;
-            --radius-lg: 20px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+{% extends "base.html" %}
 
-            /* Badges */
-            --badge-central-bg: #e0f2fe;
-            --badge-central-text: #0284c7;
-            --badge-state-bg: #ffedd5;
-            --badge-state-text: #ea580c;
-        }
+{% block title %}Government schemes - AgroVision{% endblock %}
+{% block description %}Find Indian government schemes for farmers: income support, crop insurance, loans and subsidies, with eligibility and documents.{% endblock %}
 
-        /* Dark Mode Override */
-        html[data-theme="dark"] {
-            --bg-body: #0f172a;
-            --bg-surface: #1e293b;
-            
-            --text-heading: #f8fafc;
-            --text-body: #cbd5e1;
-            --text-muted: #94a3b8;
-            
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.05);
-            --border-light: #334155;
-            
-            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.3);
+{% block styles %}
+<style>
+    /* --- Advisor --- */
+    .advisor { border-top: 4px solid var(--turmeric); }
+    .advisor h2 { margin-bottom: 0.35rem; }
+    .advisor > p { color: var(--ink-3); margin-bottom: 1.25rem; max-width: var(--measure); }
+    .advisor-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .advisor-question { grid-column: 1 / -1; }
+    .advisor .chips { margin-top: 0.6rem; }
+    .advisor-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+    .advisor-actions .btn-primary { min-height: 52px; padding-inline: 1.75rem; font-size: var(--t-md); }
+    .advisor-loading { display: none; align-items: center; gap: 0.6rem; color: var(--ink-3); }
+    .advisor-loading.show { display: inline-flex; }
+    .advisor-result { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+    .advisor-result:empty { display: none; }
 
-            --badge-central-bg: rgba(2, 132, 199, 0.2);
-            --badge-central-text: #38bdf8;
-            --badge-state-bg: rgba(234, 88, 12, 0.2);
-            --badge-state-text: #fdba74;
-        }
+    /* --- Scheme list --- */
+    .list-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem; margin: 3rem 0 1rem; }
+    .list-head p { color: var(--ink-3); }
+    .filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+    .search { position: relative; }
+    .search svg { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+    .search .input { padding-left: 2.5rem; }
 
-        /* --- BASE STYLES --- */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-body);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition);
-        }
+    .schemes-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .scheme-card { display: flex; flex-direction: column; gap: 0.85rem; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-panel); padding: 1.35rem; }
+    .scheme-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; font-size: var(--t-sm); }
+    .scheme-type { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--leaf); font-weight: 600; }
+    .scheme-gov { padding: 0.1rem 0.6rem; border-radius: 999px; background: var(--surface-2); color: var(--ink-3); font-weight: 600; }
+    .scheme-gov.state { background: var(--soil-wash); color: var(--soil); }
+    .scheme-card h3 { font-size: var(--t-lg); font-stretch: condensed; }
+    .scheme-card .desc { color: var(--ink-3); }
+    .benefit { padding: 0.7rem 0.9rem; border-radius: var(--r-control); background: var(--leaf-wash); color: var(--ink); font-weight: 600; }
+    .eligibility { font-size: 0.98rem; }
+    .eligibility strong { color: var(--ink); }
+    .scheme-actions { margin-top: auto; display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; padding-top: 0.5rem; }
+    .scheme-actions a { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; }
+    .list-message { grid-column: 1 / -1; padding: 1.5rem; text-align: center; color: var(--ink-3); background: var(--surface); border: 1px dashed var(--rule); border-radius: var(--r-panel); }
 
-        h1, h2, h3, h4, .brand-font {
-            font-family: 'Outfit', sans-serif;
-            color: var(--text-heading);
-        }
+    /* --- Guide dialog --- */
+    .guide { border: none; border-radius: var(--r-panel); padding: 0; margin: auto; width: min(720px, calc(100vw - 2rem)); max-height: min(86vh, 900px); background: var(--surface); color: var(--ink-2); box-shadow: var(--shadow-float); }
+    .guide::backdrop { background: rgba(16, 24, 18, 0.55); }
+    .guide-head { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: start; gap: 1rem; padding: 1.25rem 1.5rem 1rem; background: var(--surface); border-bottom: 1px solid var(--rule); }
+    .guide-head h2 { font-size: var(--t-xl); }
+    .guide-body { padding: 1.25rem 1.5rem; }
+    .guide-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; padding: 1rem 1.5rem 1.5rem; border-top: 1px solid var(--rule); }
+    .guide-loading { display: flex; align-items: center; gap: 0.6rem; color: var(--ink-3); }
+    .icon-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: none; background: transparent; color: var(--ink-3); cursor: pointer; }
+    .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
 
-        a { text-decoration: none; color: inherit; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; width: 100%; }
+    @media (max-width: 860px) {
+        .advisor-grid, .filters { grid-template-columns: 1fr; }
+        .schemes-grid { grid-template-columns: 1fr; }
+        .advisor-actions .btn-primary { width: 100%; }
+    }
+</style>
+{% endblock %}
 
-        /* --- BUTTONS --- */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: var(--transition);
-            border: none;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-        }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); }
-        .btn-outline { border: 1px solid var(--border-light); background: var(--bg-surface); color: var(--text-heading); }
-        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
-
-        /* --- OFFLINE INDICATOR --- */
-        .offline-indicator {
-            background-color: #ef4444; color: white; text-align: center;
-            padding: 0.75rem; font-size: 0.875rem; font-weight: 500; display: none;
-        }
-        .offline-indicator.show { display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
-
-        /* --- NAVBAR --- */
-        .navbar {
-            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; padding: 1rem 0;
-            transition: var(--transition);
-        }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo a { font-size: 1.5rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
-        .nav-menu { display: flex; list-style: none; gap: 2rem; align-items: center; }
-        .nav-menu a { font-weight: 500; color: var(--text-muted); transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
-        .nav-menu a:hover, .nav-menu a.active { color: var(--primary); }
-        .language-selector select {
-            padding: 0.5rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);
-            background: var(--bg-surface); color: var(--text-body); font-family: 'Inter', sans-serif; cursor: pointer; outline: none;
-        }
-
-        /* --- PAGE HEADER --- */
-        .page-header { padding: 3rem 0; text-align: center; }
-        .page-header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .page-header p { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
-
-        /* --- AI ADVISOR FORM --- */
-        .ai-advisor {
-            background: var(--bg-surface);
-            border: 1px solid var(--primary);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.15);
-            position: relative;
-            overflow: hidden;
-        }
-        .ai-advisor::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-            background: linear-gradient(90deg, var(--primary), #3b82f6);
-        }
-        .ai-badge {
-            display: inline-flex; align-items: center; gap: 0.25rem; background: var(--primary-light);
-            color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 999px;
-            font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem;
-        }
-        html[data-theme="dark"] .ai-badge { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
-        .ai-advisor h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-        .ai-advisor > p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
-
-        .weather-panel { margin-bottom: 2rem; }
-        .weather-card { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-soft); }
-        .weather-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem; }
-        .weather-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; border-radius: 999px; background: var(--primary-light); color: var(--primary-dark); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
-        .weather-cta { display: grid; gap: 1rem; }
-        .weather-cta p { color: var(--text-muted); margin-bottom: 0.5rem; }
-        .suggestions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
-        .suggestion-btn {
-            border: 1px solid var(--border-light);
-            background: var(--bg-body);
-            border-radius: var(--radius-md);
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            transition: var(--transition);
-            color: var(--text-body);
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-        .suggestion-btn:hover { border-color: var(--primary); color: var(--primary); }
-        .weather-summary { display: grid; gap: 0.5rem; }
-        .weather-temp { font-size: 2rem; font-weight: 700; color: var(--primary-dark); }
-        .weather-meta { color: var(--text-muted); font-size: 0.95rem; }
-        .weather-alert { margin-top: 1rem; padding: 1rem; background: #fef3c7; border: 1px solid #fde68a; color: #92400e; border-radius: var(--radius-md); }
-        .weather-forecast { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem; }
-        .weather-day { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.95rem; }
-        .weather-day strong { display: block; margin-bottom: 0.5rem; }
-        .ai-response h3 { margin-top: 1rem; margin-bottom: 0.5rem; color: var(--text-heading); }
-        .ai-response p { margin: 0.75rem 0; }
-        .ai-response ul { margin-left: 1.5rem; margin-top: 0.5rem; } 
-        .ai-response li { margin-bottom: 0.5rem; }
-        
-        .advisor-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;
-        }
-        .advisor-grid label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-heading); margin-bottom: 0.5rem; }
-        .advisor-grid input, .advisor-grid select, .advisor-grid textarea {
-            width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-light); border-radius: var(--radius-md);
-            background: var(--bg-body); color: var(--text-body); font-size: 0.95rem; outline: none; transition: var(--transition);
-            font-family: 'Inter', sans-serif;
-        }
-        .advisor-grid input:focus, .advisor-grid select:focus, .advisor-grid textarea:focus {
-            border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-        }
-        .advisor-grid textarea { min-height: 100px; resize: vertical; grid-column: 1 / -1; }
-
-
-
-        /* Advisor Results & Loading */
-        .advisor-loading { display: none; align-items: center; gap: 0.75rem; color: var(--primary); font-weight: 500; margin-top: 1.5rem; }
-        .spinner { width: 20px; height: 20px; border: 2px solid rgba(16, 185, 129, 0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .advisor-result {
-            display: none; background: var(--bg-body); border: 1px solid var(--border-light);
-            border-radius: var(--radius-md); padding: 1.5rem; margin-top: 1.5rem;
-            max-height: 520px; overflow-y: auto; line-height: 1.6;
-        }
-        .advisor-result strong { color: var(--text-heading); }
-        .advisor-result ul { margin-left: 1.25rem; margin-top: 0.5rem; }
-        .ai-response { display: grid; gap: 1rem; }
-        .ai-section {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-        }
-        .ai-section h3 { font-size: 1rem; margin-bottom: 0.65rem; }
-        .ai-section ul { display: grid; gap: 0.55rem; list-style: disc; padding-left: 1.1rem; margin: 0; }
-        .ai-section li { color: var(--text-body); }
-        .ai-response p { margin: 0; color: var(--text-body); }
-        .ai-response .response-note {
-            border-left: 3px solid var(--primary);
-            padding-left: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* --- FILTERS & SEARCH --- */
-        .filter-bar {
-            background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md);
-            padding: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 2rem;
-            box-shadow: var(--shadow-soft);
-        }
-        .search-box { flex: 2; min-width: 250px; position: relative; display: flex; align-items: center; }
-        .search-box input {
-            width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 1px solid var(--border-light);
-            border-radius: var(--radius-md); background: var(--bg-body); color: var(--text-body); font-size: 0.95rem; outline: none;
-        }
-        .search-box input:focus { border-color: var(--primary); }
-        .search-icon { position: absolute; left: 0.75rem; color: var(--text-muted); }
-        
-        .filter-group { flex: 1; min-width: 150px; }
-        .filter-select {
-            width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-light); border-radius: var(--radius-md);
-            background: var(--bg-body); color: var(--text-body); font-size: 0.95rem; outline: none; cursor: pointer;
-        }
-
-        /* --- SCHEMES GRID --- */
-        .schemes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 4rem; }
-        
-        .scheme-card {
-            background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg);
-            overflow: hidden; box-shadow: var(--shadow-soft); transition: var(--transition);
-            display: flex; flex-direction: column;
-        }
-        .scheme-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: var(--shadow-float); }
-        
-        .card-header { padding: 1.5rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: flex-start; }
-        .scheme-icon { 
-            width: 48px; height: 48px; background: var(--primary-light); color: var(--primary-dark);
-            border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-        }
-        html[data-theme="dark"] .scheme-icon { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
-        
-        .badge { font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .badge-central { background: var(--badge-central-bg); color: var(--badge-central-text); }
-        .badge-state { background: var(--badge-state-bg); color: var(--badge-state-text); }
-        
-        .card-body { padding: 1.5rem; flex: 1; }
-        .card-body h3 { font-size: 1.25rem; margin-bottom: 0.75rem; }
-        .card-body p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem; }
-        .benefit-box {
-            display: flex; align-items: flex-start; gap: 0.55rem;
-            background: var(--primary-light); color: var(--primary-dark);
-            border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 1rem;
-        }
-        html[data-theme="dark"] .benefit-box { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
-        .benefit-icon { font-weight: 700; line-height: 1.25; }
-        .eligibility-snippet {
-            border-top: 1px solid var(--border-light);
-            padding-top: 1rem;
-        }
-        
-        .card-footer { padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-light); background: var(--bg-body); display: grid; gap: 0.75rem; }
-        .btn-full { width: 100%; text-align: center; }
-        .load-error, .empty-state {
-            grid-column: 1 / -1;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-md);
-            padding: 1.5rem;
-            text-align: center;
-            color: var(--text-muted);
-        }
-
-        /* --- MODAL (GLASSMORPHISM) --- */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); z-index: 1000;
-            justify-content: center; align-items: center; padding: 1rem;
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        .modal.show { opacity: 1; display: flex; }
-        .modal-content {
-            background: var(--bg-surface); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
-            padding: 2rem; max-width: 760px; width: 100%; max-height: 85vh; overflow-y: auto;
-            box-shadow: var(--shadow-float); transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .modal.show .modal-content { transform: scale(1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
-        .modal-close { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 0.5rem; border-radius: 50%; transition: var(--transition); }
-        .modal-close:hover { background: var(--bg-body); color: var(--text-heading); }
-        .modal-body { color: var(--text-body); line-height: 1.6; }
-        .modal-actions { margin-top: 1.5rem; display: flex; gap: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border-light); }
-
-        /* --- FLOATING ACTIONS --- */
-        .floating-actions { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 1rem; z-index: 90; }
-        .float-btn {
-            width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border-light);
-            background: var(--bg-surface); color: var(--text-heading); display: flex; justify-content: center; align-items: center;
-            cursor: pointer; box-shadow: var(--shadow-float); transition: var(--transition);
-        }
-        .float-btn:hover { transform: translateY(-3px); border-color: var(--primary); color: var(--primary); }
-
-        /* --- MOBILE NAV & FOOTER --- */
-        .mobile-bottom-nav {
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid var(--border-light); z-index: 99; padding-bottom: env(safe-area-inset-bottom);
-        }
-        .mobile-bottom-nav ul { display: flex; justify-content: space-around; list-style: none; padding: 0.5rem 0; }
-        .mobile-bottom-nav a { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); padding: 0.5rem; }
-        .mobile-bottom-nav a.active { color: var(--primary); }
-
-        .footer { background: var(--bg-surface); border-top: 1px solid var(--border-light); padding: 2rem 0; margin-top: auto; text-align: center; color: var(--text-muted); font-size: 0.875rem; }
-
-        @media (max-width: 768px) {
-            .nav-menu, .language-selector { display: none; }
-            .mobile-bottom-nav { display: block; }
-            .floating-actions { bottom: 5rem; }
-            .page-header { padding: 2rem 0; }
-            .ai-advisor { padding: 1.5rem; }
-            .filter-bar { flex-direction: column; align-items: stretch; }
-            .container { padding-bottom: 4rem; }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Offline Indicator -->
-    <div class="offline-indicator" id="offlineIndicator">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 15.6l-5.3-5.3a1 1 0 010-1.4l5.3-5.3M15.4 8.4l5.3 5.3a1 1 0 010 1.4l-5.3 5.3"/></svg>
-        You are currently offline. Voice Help is still available via phone call.
-    </div>
-
-    <!-- Desktop Navbar -->
-    <nav class="navbar" id="navbar">
-        <div class="nav-container container">
-            <div class="nav-logo brand-font">
-                <a href="/">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    <span data-lang="appName">AgroVision</span>
-                </a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="/" data-lang="navHome">Home</a></li>
-                <li><a href="/detect" data-lang="navDetect">Detect Disease</a></li>
-                <li><a href="/schemes" class="active" data-lang="navSchemes">Govt Schemes</a></li>
-                <li><a href="/weather" data-lang="navWeather">Weather</a></li>
-                <li><a href="/voice" data-lang="navVoice">Voice Help</a></li>
-                <li><a href="/chatbot" data-lang="navChatbot">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
-                    Chatbot
-                </a></li>
-            </ul>
-            <div class="language-selector">
-                <select id="languageSelect" class="language-select" onchange="changeLanguage(this.value)" aria-label="Select Language">
-                    <option value="en">English</option>
-                    <option value="hi">हिन्दी</option>
-                    <option value="te">తెలుగు</option>
-                    <option value="ta">தமிழ்</option>
-                    <option value="kn">ಕನ್ನಡ</option>
-                    <option value="mr">मराठी</option>
-                </select>
-            </div>
-        </div>
-    </nav>
-
+{% block content %}
+<main id="main-content" class="container">
     <header class="page-header">
-        <div class="container">
-            <h1 class="brand-font" data-lang="schemesTitle">Government Schemes</h1>
-            <p data-lang="schemesSubtitle">Explore subsidies, loans, and AI-powered eligibility guidance for Indian farmers.</p>
-        </div>
+        <h1>Government schemes</h1>
+        <p>Income support, crop insurance, loans and subsidies for farmers. See who can apply and what to bring.</p>
     </header>
 
-    <main class="container">
-        <!-- Weather Alerts & Forecast -->
-        <section class="weather-panel" aria-label="Farm weather alerts">
-            <div class="weather-card weather-cta">
-                <div>
-                    <span class="weather-badge">Farm Weather</span>
-                    <h2 class="brand-font">Farm Weather Alerts</h2>
-                    <p>Open the farmer-friendly weather page with one-touch region buttons and instant alerts. No typing needed.</p>
+    <section class="panel advisor" aria-labelledby="advisor-heading">
+        <h2 id="advisor-heading">Which schemes fit you?</h2>
+        <p>Tell us a little about your farm. You'll get the best matches, the documents to keep ready and where to apply.</p>
+        <form id="schemeAdvisorForm">
+            <div class="advisor-grid">
+                <div class="field">
+                    <label for="advisorState">Your state</label>
+                    <select id="advisorState" name="state">
+                        <option value="India (general)">Not sure / all India</option>
+                        <option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option><option>Bihar</option>
+                        <option>Chhattisgarh</option><option>Goa</option><option>Gujarat</option><option>Haryana</option>
+                        <option>Himachal Pradesh</option><option>Jharkhand</option><option>Karnataka</option><option>Kerala</option>
+                        <option>Madhya Pradesh</option><option>Maharashtra</option><option>Manipur</option><option>Meghalaya</option>
+                        <option>Mizoram</option><option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+                        <option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option><option>Telangana</option>
+                        <option>Tripura</option><option>Uttar Pradesh</option><option>Uttarakhand</option><option>West Bengal</option>
+                    </select>
                 </div>
-                <div>
-                    <a href="/weather" class="btn btn-primary">Open Weather Alerts</a>
+                <div class="field">
+                    <label for="advisorCrop">Main crop <span class="muted">(optional)</span></label>
+                    <input type="text" id="advisorCrop" placeholder="For example, paddy" autocomplete="off">
                 </div>
-            </div>
-        </section>
-
-        <!-- AI Scheme Advisor Form -->
-        <section class="ai-advisor" aria-label="Scheme advisor">
-            <span class="ai-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                Powered by Google Gemini
-            </span>
-            <h2 class="brand-font">Scheme Advisor</h2>
-            <p>Ask which schemes you qualify for, what documents you need, or how to apply based on your profile.</p>
-            <form id="schemeAdvisorForm">
-                <div class="advisor-grid">
-                    <div>
-                        <label for="advisorState">Your State</label>
-                        <select id="advisorState" name="state">
-                            <option value="India (general)">All India / Not sure</option>
-                            <option value="Andhra Pradesh">Andhra Pradesh</option>
-                            <option value="Telangana">Telangana</option>
-                            <option value="Maharashtra">Maharashtra</option>
-                            <option value="Uttar Pradesh">Uttar Pradesh</option>
-                            <!-- other states -->
-                        </select>
-                    </div>
-                    <div>
-                        <label for="advisorCrop">Main Crop (Optional)</label>
-                        <input type="text" id="advisorCrop" placeholder="e.g. Paddy, Tomato">
-                    </div>
-                    <div>
-                        <label for="advisorLand">Land Size (Acres, Optional)</label>
-                        <input type="number" id="advisorLand" placeholder="e.g. 2.5">
-                    </div>
-                    <div>
-                        <label for="advisorMessage">Your Question</label>
-                        <textarea id="advisorMessage" required placeholder="Choose a quick question below or type your own."></textarea>
-                        <div class="suggestions">
-                            <button type="button" class="suggestion-btn" data-prompt="I am a small farmer in Telangana with paddy. Which loan or subsidy can I use?">Subsidy for paddy</button>
-                            <button type="button" class="suggestion-btn" data-prompt="I need crop insurance for tomatoes and weather damage protection.">Crop insurance</button>
-                            <button type="button" class="suggestion-btn" data-prompt="How can I get a solar pump subsidy for my field?">Solar pump subsidy</button>
-                            <button type="button" class="suggestion-btn" data-prompt="I want help applying for a tractor or equipment loan.">Farm equipment loan</button>
-                        </div>
+                <div class="field">
+                    <label for="advisorLand">Land in acres <span class="muted">(optional)</span></label>
+                    <input type="number" id="advisorLand" min="0" step="0.1" inputmode="decimal" placeholder="For example, 2.5">
+                </div>
+                <div class="field advisor-question">
+                    <label for="advisorMessage">What do you need help with? <span class="muted">(optional)</span></label>
+                    <textarea id="advisorMessage" maxlength="2000" placeholder="Leave empty to see every scheme you may qualify for."></textarea>
+                    <div class="chips" aria-label="Common questions">
+                        <button type="button" class="chip suggestion-btn" data-prompt="Which subsidy or loan can a small farmer like me use?">Subsidy or loan</button>
+                        <button type="button" class="chip suggestion-btn" data-prompt="How do I insure my crop against weather damage?">Crop insurance</button>
+                        <button type="button" class="chip suggestion-btn" data-prompt="Is there a subsidy for drip irrigation or a solar pump?">Irrigation subsidy</button>
+                        <button type="button" class="chip suggestion-btn" data-prompt="I want to buy a tractor or farm equipment. What support is there?">Tractor or equipment</button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary" id="advisorBtn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    Get AI Recommendations
-                </button>
-            </form>
+            </div>
+            <div class="advisor-actions">
+                <button type="submit" class="btn btn-primary" id="advisorBtn">Find my schemes</button>
+                <span class="advisor-loading" id="advisorLoading" role="status"><span class="spinner" aria-hidden="true"></span>Matching your farm with schemes…</span>
+            </div>
+        </form>
+        <div id="advisorResult" class="advisor-result" aria-live="polite"></div>
+    </section>
 
-            <div id="advisorLoading" class="advisor-loading">
-                <div class="spinner"></div>
-                Analyzing profile and matching schemes...
+    <section aria-labelledby="list-heading">
+        <div class="list-head">
+            <h2 id="list-heading">All schemes</h2>
+            <p id="schemeCount" aria-live="polite"></p>
+        </div>
+        <div class="filters">
+            <div class="search">
+                <label for="searchInput" class="visually-hidden">Search schemes</label>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="search" id="searchInput" class="input" placeholder="Search, for example insurance or PM-KISAN">
             </div>
-            <div id="advisorResult" class="advisor-result"></div>
-        </section>
-
-        <!-- Filters & Search -->
-        <div class="filter-bar">
-            <div class="search-box">
-                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="searchInput" placeholder="Search schemes (e.g., 'Insurance', 'PM-KISAN')...">
+            <div>
+                <label for="stateFilter" class="visually-hidden">Filter by government</label>
+                <select id="stateFilter" class="input"><option value="all">All governments</option></select>
             </div>
-            <div class="filter-group">
-                <select id="stateFilter" class="filter-select">
-                    <option value="all">📍 All Locations</option>
-                    <!-- Populated by JS -->
-                </select>
-            </div>
-            <div class="filter-group">
-                <select id="typeFilter" class="filter-select">
-                    <option value="all">All Types</option>
-                    <option value="financial">Financial Aid</option>
-                    <option value="insurance">Insurance</option>
-                    <option value="infrastructure">Infrastructure</option>
+            <div>
+                <label for="typeFilter" class="visually-hidden">Filter by type</label>
+                <select id="typeFilter" class="input">
+                    <option value="all">All types</option>
+                    <option value="financial">Income and credit</option>
+                    <option value="insurance">Crop insurance</option>
+                    <option value="infrastructure">Farm infrastructure</option>
                 </select>
             </div>
         </div>
-
-        <!-- Dynamic Schemes Grid -->
         <div class="schemes-grid" id="schemesGrid">
-            <!-- Example Skeleton / Initial Load State -->
-            <p style="grid-column:1/-1;text-align:center;color:var(--text-muted);">Loading schemes…</p>
+            <p class="list-message">Loading schemes…</p>
         </div>
-    </main>
+    </section>
 
-    <!-- Scheme Details Modal (Glassmorphism) -->
-    <div id="infoModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle" class="brand-font">Scheme Name</h2>
-                <button class="modal-close" id="closeModalBtn" title="Close">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </div>
-            <div id="modalBody" class="modal-body">
-                <!-- Content injected via JS -->
-            </div>
-            <div id="modalActions" class="modal-actions">
-                <button class="btn btn-primary" onclick="window.open('#', '_blank')">Apply on Official Portal</button>
-                <button class="btn btn-outline" id="closeModalAction">Close</button>
-            </div>
+    <dialog class="guide" id="infoModal" aria-labelledby="modalTitle">
+        <div class="guide-head">
+            <h2 id="modalTitle"></h2>
+            <button type="button" class="icon-btn" id="closeModalBtn" aria-label="Close">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
         </div>
-    </div>
+        <div class="guide-body" id="modalBody" aria-live="polite"></div>
+        <div class="guide-actions" id="modalActions"></div>
+    </dialog>
+</main>
+{% endblock %}
 
-    <!-- Floating Actions (Theme Toggle & Scroll to top) -->
-    <div class="floating-actions">
-        <button class="float-btn" id="themeToggle" title="Toggle Theme">
-            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-            <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </button>
-        <button class="float-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Scroll to Top">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-        </button>
-    </div>
-
-    <!-- Mobile Bottom Nav -->
-    <nav class="mobile-bottom-nav">
-        <ul>
-            <li><a href="/">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                Home
-            </a></li>
-            <li><a href="/detect">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Detect
-            </a></li>
-            <li><a href="/schemes" class="active">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
-                Schemes
-            </a></li>
-            <li><a href="/voice">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                Voice
-            </a></li>
-        </ul>
-    </nav>
-
-    <footer class="footer">
-        <div class="container">
-            <p data-lang="footerCopyright">&copy; 2026 AgroVision. Information sourced from official Government portals.</p>
-        </div>
-    </footer>
-
-    <!-- UI Scripts for Modals and Theme -->
-    <script>
-        // --- Theme Toggling Logic ---
-        const themeToggleBtn = document.getElementById('themeToggle');
-        const sunIcon = document.querySelector('.sun-icon');
-        const moonIcon = document.querySelector('.moon-icon');
-        const htmlElement = document.documentElement;
-
-        function setTheme(theme) {
-            if (theme === 'dark') {
-                htmlElement.setAttribute('data-theme', 'dark');
-                sunIcon.style.display = 'block';
-                moonIcon.style.display = 'none';
-            } else {
-                htmlElement.removeAttribute('data-theme');
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'block';
-            }
-            localStorage.setItem('agrovision-theme', theme);
-        }
-
-        const savedTheme = localStorage.getItem('agrovision-theme') || 'light';
-        setTheme(savedTheme);
-
-        themeToggleBtn.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            setTheme(currentTheme);
-        });
-
-        // --- Offline Detection ---
-        window.addEventListener('offline', () => document.getElementById('offlineIndicator').classList.add('show'));
-        window.addEventListener('online', () => document.getElementById('offlineIndicator').classList.remove('show'));
-
-        // --- Modal Logic ---
-        const modal = document.getElementById('infoModal');
-        const closeBtn = document.getElementById('closeModalBtn');
-        const closeActionBtn = document.getElementById('closeModalAction');
-
-        function openModal() {
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling under modal
-        }
-
-        function closeModal() {
-            modal.classList.remove('show');
-            document.body.style.overflow = 'auto';
-        }
-
-        closeBtn.addEventListener('click', closeModal);
-        closeActionBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
-
-    </script>
-    
-    <!-- External Scripts from your project -->
-    <script src="/static/js/translate.js"></script>
-    <script src="/static/js/lang.js"></script>
-    <script src="/static/js/schemes.js"></script>
-</body>
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/schemes.js') }}"></script>
+{% endblock %}

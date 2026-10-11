@@ -223,8 +223,15 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                val imageProcessor = ImageProcessor.Builder()
-                    .add(ResizeOp(inputSize, inputSize, ResizeOp.ResizeMethod.BILINEAR))
+                // Same preprocessing as the web scan: the model was trained with nearest-neighbour
+                // resizing, which is clearly more accurate than bilinear. Large photos are shrunk
+                // with smoothing first, because nearest-neighbour on a 12 MP photo skips most pixels.
+                val processorBuilder = ImageProcessor.Builder()
+                if (maxOf(bitmap.width, bitmap.height) > 256) {
+                    processorBuilder.add(ResizeOp(256, 256, ResizeOp.ResizeMethod.BILINEAR))
+                }
+                val imageProcessor = processorBuilder
+                    .add(ResizeOp(inputSize, inputSize, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
                     .add(NormalizeOp(0.0f, 255.0f))
                     .build()
 

@@ -5,7 +5,8 @@ import logging
 
 from flask import Blueprint, request, jsonify
 
-from services.gemini import translate_texts_with_gemini, gemini_error_response
+from extensions import limiter, TRANSLATE_LIMIT
+from services.gemini import translate_texts_with_gemini
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +14,11 @@ translation_bp = Blueprint("translation", __name__, url_prefix="/api")
 
 
 @translation_bp.route("/translate-page", methods=["POST"])
+@limiter.limit(TRANSLATE_LIMIT)
 def translate_page():
     """Translate visible page strings with Gemini for any requested language."""
     try:
         data = request.get_json(silent=True) or {}
-        gemini_api_key = (data.get("gemini_api_key") or "").strip()
         target_language = (data.get("target_language") or "").strip()
         texts = data.get("texts") or []
 
@@ -34,7 +35,7 @@ def translate_page():
         if sum(len(t) for t in clean_texts) > 12000:
             return jsonify({"error": "Translation payload is too large."}), 400
 
-        translations = translate_texts_with_gemini(clean_texts, target_language, api_key=gemini_api_key)
+        translations = translate_texts_with_gemini(clean_texts, target_language)
         return jsonify({
             "target_language": target_language,
             "translations": translations,
@@ -42,4 +43,4 @@ def translate_page():
         })
     except Exception as exc:
         logger.error(f"Page translation error: {exc}")
-        return gemini_error_response(exc)
+        return jsonify({"error": "Translation is unavailable right now.", "ai_powered": False}), 503

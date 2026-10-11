@@ -4,6 +4,7 @@ Disease detection service: model loading, prediction helpers, label/database acc
 import json
 import logging
 import os
+import threading
 
 import numpy as np
 
@@ -23,15 +24,44 @@ _missing_db = [label for label in PLANT_DISEASE_CLASS_NAMES if label not in DISE
 if _missing_db:
     raise RuntimeError(f"disease_database.json missing entries for: {_missing_db}")
 
-# Minimum softmax confidence to accept a prediction
-MIN_PREDICTION_CONFIDENCE = 0.15
+# --- Which crops the model covers, and how well ---------------------------------
+# The model was trained on a fixed list of crop/disease classes ("Tomato___Early_blight").
+# Everything below is derived from that label file, so it follows the labels if the
+# model is ever retrained with more crops or classes.
+
+def _crop_key(label: str) -> str:
+    base = label.split("___")[0]
+    return "bell_pepper" if base == "Pepper,bell" else base.lower().replace(" ", "_")
+
+
+CROP_OF_CLASS = [_crop_key(label) for label in PLANT_DISEASE_CLASS_NAMES]
+CROP_CLASSES = {}  # crop key -> indices of that crop's classes
+for _index, _crop in enumerate(CROP_OF_CLASS):
+    CROP_CLASSES.setdefault(_crop, []).append(_index)
+CROP_KEYS = tuple(CROP_CLASSES)
+
+# A crop can only be diagnosed if the model has seen at least two outcomes for it.
+# Blueberry, raspberry and soybean have a single "healthy" class (any leaf is
+# "healthy"); orange and squash have a single disease class (any leaf has it).
+# For those the answer never depends on the photo, so it would mislead.
+DIAGNOSABLE_CROPS = frozenset(c for c, idx in CROP_CLASSES.items() if len(idx) >= 2)
+
+
+def crop_name(crop: str) -> str:
+    """Plain-language crop name for messages, e.g. "bell pepper"."""
+    return crop.replace("_", " ")
+
+
+# Minimum softmax confidence to accept a prediction. With 38 classes a uniform
+# guess is ~0.03, so anything below this is treated as "uncertain".
+MIN_PREDICTION_CONFIDENCE = float(os.environ.get("MIN_PREDICTION_CONFIDENCE", "0.5"))
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 
 # --- Lazy-loaded ML model state ---
 _plant_disease_model = None
 _plant_disease_target_size = (112, 112)  # (width, height) — must match trained model
-_plant_disease_classes = None  # Will be populated from model
+_model_lock = threading.Lock()
 
 
 def allowed_file(filename: str) -> bool:
@@ -43,11 +73,6 @@ def allowed_file(filename: str) -> bool:
 def get_target_size():
     """Return current model target size (width, height)."""
     return _plant_disease_target_size
-
-
-def get_plant_disease_classes():
-    """Return model class names if extracted, else None."""
-    return _plant_disease_classes
 
 
 def lookup_disease_info(disease_key: str) -> dict:
@@ -71,146 +96,89 @@ def lookup_disease_info(disease_key: str) -> dict:
     }
 
 
-def _rebuild_plant_disease_model_from_weights(model_path):
-    """Rebuild plant disease model and load weights by name."""
+def _input_shape_from_h5(model_path):
+    """Read the input shape from the saved model config, defaulting to 112x112x3."""
     import h5py
-    import tensorflow as tf
-
-    # Infer input shape from saved config
-    input_shape = (112, 112, 3)
-    num_classes = len(PLANT_DISEASE_CLASS_NAMES)
 
     try:
         with h5py.File(model_path, "r") as f:
-            mc = f.attrs.get("model_config")
-            if mc is not None:
-                mc = mc.decode("utf-8") if hasattr(mc, "decode") else mc
-                data = json.loads(mc)
-                layers = (data.get("config") or {}).get("layers") or []
-                if layers and layers[0].get("class_name") == "InputLayer":
-                    bs = (layers[0].get("config") or {}).get("batch_shape")
-                    if isinstance(bs, list) and len(bs) == 4:
-                        h, w, c = bs[1], bs[2], bs[3]
-                        if isinstance(h, int) and isinstance(w, int) and isinstance(c, int):
-                            input_shape = (h, w, c)
-
-                # Try to infer number of classes from last layer
-                if layers:
-                    last_layer = layers[-1]
-                    if last_layer.get("class_name") == "Dense":
-                        units = (last_layer.get("config") or {}).get("units")
-                        if isinstance(units, int):
-                            num_classes = units
+            config = f.attrs.get("model_config")
+            if config is None:
+                return (112, 112, 3)
+            config = config.decode("utf-8") if hasattr(config, "decode") else config
+            layers = (json.loads(config).get("config") or {}).get("layers") or []
+            if layers and layers[0].get("class_name") == "InputLayer":
+                shape = (layers[0].get("config") or {}).get("batch_shape")
+                if isinstance(shape, list) and len(shape) == 4 and all(isinstance(v, int) for v in shape[1:]):
+                    return tuple(shape[1:])
     except Exception as e:
-        logger.warning(f"Could not fully infer model structure: {e}")
+        logger.warning(f"Could not read input shape from model file: {e}")
+    return (112, 112, 3)
 
-    # Default to common architecture if we can't infer
-    if num_classes is None:
-        num_classes = 38  # Common number for plant disease models
 
+def _rebuild_plant_disease_model_from_weights(model_path):
+    """
+    Rebuild the MobileNetV2 classifier and load weights strictly.
+
+    Used only when the saved architecture cannot be deserialised (e.g. a Keras
+    version mismatch). Any layer mismatch raises instead of silently leaving
+    random weights, which would produce confident garbage predictions.
+    """
+    import tensorflow as tf
+
+    input_shape = _input_shape_from_h5(model_path)
     inputs = tf.keras.Input(shape=input_shape)
-    base = tf.keras.applications.MobileNetV2(
-        include_top=False,
-        weights=None,
-        input_tensor=inputs,
-        input_shape=input_shape
-    )
-    x = base.output
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    outputs = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
+    base = tf.keras.applications.MobileNetV2(include_top=False, weights=None, input_tensor=inputs)
+    x = tf.keras.layers.GlobalAveragePooling2D()(base.output)
+    outputs = tf.keras.layers.Dense(len(PLANT_DISEASE_CLASS_NAMES), activation="softmax")(x)
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
-
-    try:
-        model.load_weights(model_path, by_name=True, skip_mismatch=True)
-    except Exception as e:
-        logger.warning(f"Could not load weights by name: {e}")
-        raise
-
+    model.load_weights(model_path)
     return model
 
 
+def _load_model_from_disk(model_path):
+    import tensorflow as tf
+
+    try:
+        return tf.keras.models.load_model(model_path, compile=False)
+    except Exception as e:
+        logger.warning(f"Direct model load failed ({str(e)[:200]}); rebuilding from weights.")
+    try:
+        return _rebuild_plant_disease_model_from_weights(model_path)
+    except Exception as e:
+        raise RuntimeError(f"Could not load plant disease model: {str(e)[:200]}") from e
+
+
 def get_plant_disease_model():
-    """Load and cache the plant disease model."""
-    global _plant_disease_model, _plant_disease_target_size, _plant_disease_classes
+    """Load (once, thread-safely) and cache the plant disease model."""
+    global _plant_disease_model, _plant_disease_target_size
 
     if _plant_disease_model is not None:
         return _plant_disease_model
 
-    model_path = os.path.join(_ROOT, "plant_disease_model.h5")
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Plant disease model not found: {model_path}")
+    with _model_lock:
+        if _plant_disease_model is not None:
+            return _plant_disease_model
 
-    import tensorflow as tf
-    logger.info(f"Attempting to load disease model from: {model_path}")
+        model_path = os.path.join(_ROOT, "plant_disease_model.h5")
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Plant disease model not found: {model_path}")
 
-    # Try direct load first
-    try:
-        model = tf.keras.models.load_model(
-            model_path,
-            compile=False,
-            custom_objects={'MobileNetV2': tf.keras.applications.MobileNetV2}
-        )
-        logger.info("✅ Disease model loaded successfully!")
-    except Exception as e:
-        error_str = str(e)
-        logger.warning(f"Direct load failed with: {error_str[:200]}")
+        logger.info(f"Loading disease model from: {model_path}")
+        model = _load_model_from_disk(model_path)
 
-        if 'Unknown argument' in error_str or 'name' in error_str.lower():
-            try:
-                logger.info("Attempting alternative loading method...")
-                model = tf.keras.models.load_model(model_path, compile=True)
-                logger.info("✅ Disease model loaded with compile=True!")
-            except Exception as e2:
-                logger.info("Falling back to weight-based rebuild...")
-                try:
-                    model = _rebuild_plant_disease_model_from_weights(model_path)
-                    logger.info("✅ Disease model rebuilt successfully from weights!")
-                except Exception as rebuild_error:
-                    logger.error(f"Rebuild also failed: {str(rebuild_error)[:200]}")
-                    raise Exception(f"Failed to load disease model via all methods. Last error: {str(rebuild_error)[:200]}")
-        else:
-            logger.info("Falling back to weight-based rebuild...")
-            try:
-                model = _rebuild_plant_disease_model_from_weights(model_path)
-                logger.info("✅ Disease model rebuilt successfully from weights!")
-            except Exception as rebuild_error:
-                logger.error(f"Rebuild also failed: {str(rebuild_error)[:200]}")
-                raise Exception(f"Failed to load disease model via both methods. Direct: {error_str[:100]}, Rebuild: {str(rebuild_error)[:100]}")
+        output_shape = model.output_shape[0] if isinstance(model.output_shape, list) else model.output_shape
+        if output_shape[-1] != len(PLANT_DISEASE_CLASS_NAMES):
+            raise RuntimeError(
+                f"Model has {output_shape[-1]} output classes but plant_disease_labels.json "
+                f"has {len(PLANT_DISEASE_CLASS_NAMES)} labels."
+            )
 
-    # Infer target size
-    try:
-        input_shape = model.input_shape
-        if isinstance(input_shape, list):
-            input_shape = input_shape[0]
+        input_shape = model.input_shape[0] if isinstance(model.input_shape, list) else model.input_shape
         h, w = input_shape[1], input_shape[2]
         if isinstance(h, int) and isinstance(w, int) and h > 0 and w > 0:
             _plant_disease_target_size = (w, h)
-            logger.info(f"✅ Inferred disease model target size: {_plant_disease_target_size}")
-    except Exception as e:
-        logger.warning(f"Could not infer target size: {e}. Using default (112, 112)")
-        _plant_disease_target_size = (112, 112)
 
-    # Try to get class names from model
-    try:
-        output_shape = model.output_shape
-        if isinstance(output_shape, list):
-            output_shape = output_shape[0]
-        num_classes = output_shape[-1] if output_shape else None
-        logger.info(f"✅ Disease model has {num_classes} output classes")
-
-        # Try to extract class names from model metadata if available
-        try:
-            if hasattr(model, 'class_names'):
-                _plant_disease_classes = model.class_names
-                logger.info(f"✅ Found class names in model: {len(_plant_disease_classes)} classes")
-            elif hasattr(model, 'config') and 'class_names' in model.config:
-                _plant_disease_classes = model.config['class_names']
-                logger.info(f"✅ Found class names in model config: {len(_plant_disease_classes)} classes")
-        except Exception as e:
-            logger.warning(f"Could not extract class names from model: {e}")
-    except Exception as e:
-        logger.warning(f"Could not infer number of classes: {e}")
-
-    _plant_disease_model = model
-    logger.info(f"✅ Plant disease model ready. Target size: {_plant_disease_target_size}")
-    return _plant_disease_model
+        _plant_disease_model = model
+        logger.info(f"Plant disease model ready. Target size: {_plant_disease_target_size}")
+        return _plant_disease_model

@@ -6,8 +6,17 @@ import os
 
 from flask import Blueprint, render_template, request, jsonify
 
+from services import leaf_check
 from services.weather import fetch_openweather
-from services.disease import PLANT_DISEASE_CLASS_NAMES, DISEASE_DATABASE, get_target_size
+from services.disease import (
+    CROP_CLASSES,
+    CROP_KEYS,
+    DIAGNOSABLE_CROPS,
+    DISEASE_DATABASE,
+    PLANT_DISEASE_CLASS_NAMES,
+    crop_name,
+    get_target_size,
+)
 from services.schemes_data import get_government_schemes
 
 logger = logging.getLogger(__name__)
@@ -17,14 +26,24 @@ pages_bp = Blueprint("pages", __name__)
 
 # --- HTML page routes ---
 
+def _scan_context():
+    """What the scan can and cannot do, for the pages that describe it (derived from the model's labels)."""
+    return {
+        "covered_crops": [crop_name(c) for c in sorted(DIAGNOSABLE_CROPS)],
+        "single_class_crops": [crop_name(c) for c in sorted(set(CROP_KEYS) - DIAGNOSABLE_CROPS)],
+        "photo_check_on": leaf_check.check_mode() != "off",
+        "condition_count": sum(len(CROP_CLASSES[c]) for c in DIAGNOSABLE_CROPS),
+    }
+
+
 @pages_bp.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("index.html", **_scan_context())
 
 
 @pages_bp.route("/detect")
 def detect():
-    return render_template("detect.html")
+    return render_template("detect.html", **_scan_context())
 
 
 @pages_bp.route("/schemes")
@@ -39,7 +58,13 @@ def weather():
 
 @pages_bp.route("/voice")
 def voice():
-    return render_template("voice.html")
+    # Set HELPLINE_NUMBER (e.g. "1800-123-4567") once the AgroVision IVR line is live.
+    helpline = os.environ.get("HELPLINE_NUMBER", "").strip()
+    return render_template(
+        "voice.html",
+        helpline=helpline,
+        helpline_tel="".join(ch for ch in helpline if ch.isdigit() or ch == "+"),
+    )
 
 
 @pages_bp.route("/chatbot")
@@ -61,6 +86,8 @@ def health():
         "disease_classes": len(PLANT_DISEASE_CLASS_NAMES),
         "disease_database_entries": len(DISEASE_DATABASE),
         "chat_configured": chat_ok,
+        "photo_check": {"mode": leaf_check.check_mode(), "ready": leaf_check.check_available()},
+        "diagnosable_crops": sorted(DIAGNOSABLE_CROPS),
         "schemes_count": len(get_government_schemes()),
         "input_size": list(get_target_size()),
     })

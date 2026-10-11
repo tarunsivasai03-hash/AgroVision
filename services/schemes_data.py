@@ -33,41 +33,35 @@ def scheme_by_id(scheme_id: str) -> dict | None:
 # State name normalization for matching
 # ---------------------------------------------------------------------------
 
+# Abbreviations and short names -> full state name. Full names need no entry:
+# they are slugified directly by _normalize_state.
 _STATE_ALIASES = {
-    "ap": "andhra-pradesh",
-    "andhra pradesh": "andhra-pradesh",
-    "andhra": "andhra-pradesh",
+    "ap": "andhra pradesh",
+    "andhra": "andhra pradesh",
     "ts": "telangana",
-    "telangana": "telangana",
+    "tg": "telangana",
     "mh": "maharashtra",
-    "maharashtra": "maharashtra",
     "up": "uttar pradesh",
-    "uttar pradesh": "uttar-pradesh",
-    "tn": "tamil-nadu",
-    "tamil nadu": "tamil-nadu",
+    "tn": "tamil nadu",
     "ka": "karnataka",
-    "karnataka": "karnataka",
     "kl": "kerala",
-    "kerala": "kerala",
-    "wb": "west-bengal",
-    "west bengal": "west-bengal",
-    "mp": "madhya-pradesh",
-    "madhya pradesh": "madhya-pradesh",
+    "wb": "west bengal",
+    "mp": "madhya pradesh",
     "rj": "rajasthan",
-    "rajasthan": "rajasthan",
     "gj": "gujarat",
-    "gujarat": "gujarat",
     "pb": "punjab",
-    "punjab": "punjab",
     "hr": "haryana",
-    "haryana": "haryana",
+    "br": "bihar",
+    "od": "odisha",
+    "or": "odisha",
+    "orissa": "odisha",
 }
 
 
 def _normalize_state(raw: str) -> str:
-    """Normalize a user-entered state to its slug form."""
-    key = raw.strip().lower().replace("-", " ")
-    return _STATE_ALIASES.get(key, key.replace(" ", "-"))
+    """Normalize a user-entered state (name or abbreviation) to its slug form."""
+    key = " ".join(raw.strip().lower().replace("-", " ").split())
+    return _STATE_ALIASES.get(key, key).replace(" ", "-")
 
 
 # ---------------------------------------------------------------------------
