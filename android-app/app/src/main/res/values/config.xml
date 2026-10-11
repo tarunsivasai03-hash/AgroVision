@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Emulator: 10.0.2.2 is your PC. Phone on the same Wi-Fi: use your PC's address, e.g. http://192.168.0.15:5000 -->
+    <string name="api_base_url" translatable="false">http://10.0.2.2:5000</string>
+    <string name="helpline_number" translatable="false">1800-123-4567</string>
+</resources>

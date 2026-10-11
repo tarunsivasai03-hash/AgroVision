@@ -1,38 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AgroVision</string>
-    <string name="title_app">AgroVision</string>
-    <string name="tagline">हर खेत के लिए स्मार्ट देखभाल</string>
-    <string name="btn_camera">कैमरा</string>
-    <string name="btn_gallery">गैलरी</string>
-    <string name="btn_analyze">विश्लेषण करें</string>
+    <string name="tagline">पत्ता जाँचें। मदद पाएँ।</string>
     <string name="lang_label">भाषा</string>
-    <string name="hint_select">विश्लेषण शुरू करने के लिए पत्ते की फोटो लें या चुनें।</string>
-    <string name="image_ready">छवि विश्लेषण के लिए तैयार है।</string>
-    <string name="model_loaded">एआई मॉडल लोड हो गया। आपकी फसलों की सुरक्षा के लिए तैयार।</string>
-    <string name="model_error">एआई मॉडल त्रुटि: %1$s</string>
-    <string name="scan_running">डिवाइस पर गहन स्कैन चल रहा है...</string>
-    <string name="scan_failed">स्कैन विफल: %1$s</string>
-    <string name="analysis_title">विश्लेषण परिणाम</string>
-    <string name="diagnosis_prefix">निदान:</string>
-    <string name="confidence_prefix">विश्वास:</string>
-    <string name="healthy_note">पौधा स्वस्थ दिख रहा है। नियमित देखभाल और निगरानी जारी रखें।</string>
-    <string name="disease_note">कार्रवाई आवश्यक: संभावित रोग मिला। सुझाए गए उपचार देखें।</string>
-    <string name="toast_capture_cancelled">कैमरा कैप्चर रद्द</string>
+    <string name="lang_current" translatable="false">हिन्दी</string>
+    <string name="offline_banner">इंटरनेट नहीं है। पत्ते की जाँच चलेगी। योजनाएँ और पूछें के लिए इंटरनेट चाहिए।</string>
+
+    <string name="nav_scan">पत्ता</string>
+    <string name="nav_schemes">योजनाएँ</string>
+    <string name="nav_helpline">हेल्पलाइन</string>
+    <string name="nav_ask">पूछें</string>
+
+    <string name="scan_title">पत्ता जाँचें</string>
+    <string name="scan_subtitle">दिन की रोशनी में एक पत्ते की पास से फोटो लें। पत्ता पूरी फोटो में भरा हो।</string>
+    <string name="preview_empty">आपकी फोटो यहाँ दिखेगी</string>
+    <string name="preview_description">आपकी चुनी हुई पत्ते की फोटो</string>
+    <string name="btn_camera">फोटो लें</string>
+    <string name="btn_gallery">फोटो चुनें</string>
+    <string name="btn_analyze">इस पत्ते को जाँचें</string>
+    <string name="btn_listen">सुनें</string>
+    <string name="toast_capture_cancelled">कोई फोटो नहीं ली गई</string>
+    <string name="toast_no_result">अभी सुनाने के लिए कुछ नहीं है</string>
+
+    <string name="status_model_error">पत्ता जाँचने वाला हिस्सा शुरू नहीं हो सका (%1$s)। ऐप दोबारा इंस्टॉल करें।</string>
+    <string name="status_ready">फोटो तैयार है। \"इस पत्ते को जाँचें\" दबाएँ।</string>
+    <string name="status_running">पत्ता जाँचा जा रहा है…</string>
+    <string name="status_failed">यह फोटो पढ़ी नहीं जा सकी (%1$s)। दूसरी फोटो आज़माएँ।</string>
+
+    <string name="chip_healthy">स्वस्थ दिखता है</string>
+    <string name="chip_possible">संभावित रोग</string>
+    <string name="chip_unsure">पक्का नहीं</string>
+    <string name="result_crop">फसल: %1$s</string>
+    <string name="result_healthy_note">रोग का कोई निशान नहीं मिला। पौधे पर नज़र रखें, खासकर बारिश के बाद।</string>
+    <string name="result_disease_note">फोन को लगता है कि पत्ते में यह समस्या हो सकती है। कुछ भी छिड़कने से पहले अपने सामने के पत्ते से मिलान करें।</string>
+    <string name="result_unsure_title">इस फोटो से पता नहीं चलता</string>
+    <string name="result_unsure_note">दिन की रोशनी में, सादी पृष्ठभूमि पर, एक पत्ते की पास से फोटो फिर लें। अगर पत्ता वेबसाइट पर दी गई फसलों का नहीं है, तो यह जाँच उसे नहीं परख सकती।</string>
+    <string name="result_single_title">%1$s की जाँच नहीं हो सकती</string>
+    <string name="result_single_note">इस फसल की सिर्फ़ एक स्थिति जाँच को पता है, इसलिए वह स्वस्थ और बीमार पत्ते में फ़र्क़ नहीं कर सकती। कृषि अधिकारी से पूछें या \"पूछें\" टैब इस्तेमाल करें।</string>
+    <string name="result_alt">अन्य संभावनाएँ: %1$s</string>
+    <string name="result_caution">यह सिर्फ़ फोन से मिला संकेत है। खेत में ली गई फोटो अक्सर गलत परखी जाती हैं। इलाज पर पैसे खर्च करने से पहले पत्ता कृषि अधिकारी को दिखाएँ।</string>
+    <string name="scan_trust">सिर्फ़ संकेत क्यों? यह जाँच साफ़ प्रयोगशाला की फोटो पर सिखाई गई है। वेबसाइट पर सही फसल और दिखते पत्ते की और जाँचें होती हैं, इस ऐप में नहीं।</string>
+    <string name="speak_healthy">%1$s का पत्ता। स्वस्थ दिखता है।</string>
+    <string name="speak_possible">%1$s का पत्ता। यह %2$s हो सकता है।</string>
+    <string name="speak_unsure">इस फोटो से पत्ते को परखा नहीं जा सकता। दिन की रोशनी में पास से फोटो लें।</string>
+
     <string name="schemes_title">सरकारी योजनाएँ</string>
-    <string name="voice_title">वॉइस व हेल्पलाइन</string>
-    <string name="voice_subtitle">बहुभाषी मदद के लिए कभी भी कॉल करें</string>
-    <string name="voice_call">हेल्पलाइन कॉल करें</string>
-    <string name="voice_how">कैसे काम करता है</string>
-    <string name="voice_steps">1) टोल-फ्री 1800-123-4567 पर कॉल करें
-2) अपनी भाषा चुनें
-3) समस्या बताएं और एसएमएस में उपचार पाएं</string>
-    <string name="chat_title">AI सहायक (Gemini)</string>
-    <string name="chat_subtitle">वेब चैट जैसा — AgroVision सर्वर और Wi‑Fi ज़रूरी। रोग जाँच ऑफ़लाइन।</string>
-    <string name="chat_welcome">नमस्ते! मैं वेबसाइट जैसा Gemini सहायक हूँ। फसल, रोग या योजनाओं के बारे में पूछें। PC पर Flask चालू रखें।</string>
+    <string name="schemes_subtitle">किसी भी योजना पर \"आसान भाषा में\" दबाएँ, या नीचे अपने खेत के बारे में लिखें।</string>
+    <string name="schemes_advisor_label">अपने खेत के बारे में लिखें</string>
+    <string name="schemes_advisor_hint">जैसे: महाराष्ट्र में 2 एकड़ कपास</string>
+    <string name="schemes_advisor_btn">मेरे लिए योजनाएँ खोजें</string>
+    <string name="schemes_loading">योजनाएँ लोड हो रही हैं…</string>
+    <string name="schemes_ai_thinking">योजनाएँ देखी जा रही हैं…</string>
+    <string name="schemes_failed">योजनाएँ लोड नहीं हो सकीं। इंटरनेट और सर्वर का पता जाँचें।</string>
+    <string name="schemes_need_text">पहले अपने खेत के बारे में एक पंक्ति लिखें।</string>
+    <string name="scheme_explain">आसान भाषा में</string>
+    <string name="scheme_open">सरकारी साइट</string>
+
+    <string name="voice_title">हेल्पलाइन</string>
+    <string name="voice_subtitle">अपनी भाषा में किसी से बात करें। कॉल मुफ़्त है।</string>
+    <string name="voice_call">1800-123-4567 पर कॉल करें</string>
+    <string name="voice_how">यह कैसे काम करता है</string>
+    <string name="voice_step_1">1. टोल-फ्री नंबर पर कॉल करें।</string>
+    <string name="voice_step_2">2. अपनी भाषा चुनें।</string>
+    <string name="voice_step_3">3. समस्या बताएँ। उपाय एसएमएस से आएगा।</string>
+
+    <string name="chat_title">अपनी फसल के बारे में पूछें</string>
+    <string name="chat_subtitle">जवाब AgroVision सर्वर से आते हैं और इंटरनेट चाहिए।</string>
+    <string name="chat_welcome">नमस्ते! फसल के रोग, खेती के सुझाव या सरकारी योजनाओं के बारे में पूछें।</string>
     <string name="chat_thinking">सोच रहा है…</string>
-    <string name="chat_hint">रोग, योजनाएँ या देखभाल सुझाव पूछें</string>
-    <string name="api_base_url">http://10.0.2.2:5000</string>
-    <string name="chat_offline">चैट के लिए इंटरनेट और चालू AgroVision सर्वर चाहिए।</string>
-    <string name="chat_error_generic">सहायक तक नहीं पहुँचे। strings.xml में सर्वर URL और .env में GEMINI_API_KEY जाँचें।</string>
+    <string name="chat_hint">अपना सवाल लिखें</string>
+    <string name="btn_send">भेजें</string>
+    <string name="chat_suggest_1">टमाटर के पत्तों पर धब्बे</string>
+    <string name="chat_suggest_2">2 एकड़ के लिए कौन सी योजनाएँ?</string>
+    <string name="chat_suggest_3">धान में पानी कब दें?</string>
+    <string name="chat_offline">पूछने के लिए इंटरनेट चाहिए। जुड़कर फिर कोशिश करें।</string>
+    <string name="chat_error_generic">सहायक तक नहीं पहुँचा जा सका। जाँचें कि सर्वर चालू है और config.xml में पता सही है।</string>
 </resources>

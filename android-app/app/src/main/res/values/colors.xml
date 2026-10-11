@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Same palette as the website (static/css/style.css) -->
+    <color name="paper">#F3F6F0</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_2">#E9EFE5</color>
+    <color name="rule">#D3DCCD</color>
+    <color name="ink">#17221A</color>
+    <color name="ink_2">#33423A</color>
+    <color name="ink_3">#5A6A5F</color>
+    <color name="leaf">#245C32</color>
+    <color name="leaf_deep">#173D22</color>
+    <color name="leaf_wash">#E4EEDF</color>
+    <color name="turmeric">#E3A428</color>
+    <color name="on_turmeric">#17221A</color>
+    <color name="soil">#7A4B2A</color>
+    <color name="soil_wash">#F5EBE1</color>
+    <color name="danger">#A8261D</color>
+    <color name="danger_wash">#FBEAE8</color>
+    <color name="on_leaf">#FFFFFF</color>
 </resources>

@@ -1,36 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AgroVision</string>
-    <string name="title_app">AgroVision</string>
-    <string name="tagline">ప్రతి పంటకు స్మార్ట్ సంరక్షణ</string>
-    <string name="btn_camera">కెమెరా</string>
-    <string name="btn_gallery">గ్యాలరీ</string>
-    <string name="btn_analyze">విశ్లేషించండి</string>
+    <string name="tagline">ఆకును తనిఖీ చేయండి. సహాయం పొందండి.</string>
     <string name="lang_label">భాష</string>
-    <string name="hint_select">విశ్లేషణ ప్రారంభించడానికి ఆకును ఫోటో తీయండి లేదా ఎంచుకోండి.</string>
-    <string name="image_ready">చిత్రం విశ్లేషణకు సిద్ధంగా ఉంది.</string>
-    <string name="model_loaded">ఎఐ మోడల్ లోడ్ అయింది. మీ పంటలను రక్షించడానికి సిద్ధం.</string>
-    <string name="model_error">ఎఐ మోడల్ లోపం: %1$s</string>
-    <string name="scan_running">పరికరంలో లోతైన స్కాన్ నడుస్తోంది...</string>
-    <string name="scan_failed">స్కాన్ విఫలమైంది: %1$s</string>
-    <string name="analysis_title">విశ్లేషణ ఫలితాలు</string>
-    <string name="diagnosis_prefix">నిర్ధారణ:</string>
-    <string name="confidence_prefix">నమ్మకం:</string>
-    <string name="healthy_note">మొక్క ఆరోగ్యంగా ఉంది. సాధారణ సంరక్షణ మరియు పర్యవేక్షణ కొనసాగించండి.</string>
-    <string name="disease_note">చర్య అవసరం: సంభావ్య వ్యాధి గుర్తించబడింది. సిఫారసు చేసిన చికిత్సలను చూడండి.</string>
-    <string name="toast_capture_cancelled">కెమెరా క్యాప్చర్ రద్దు</string>
+    <string name="lang_current" translatable="false">తెలుగు</string>
+    <string name="offline_banner">ఇంటర్నెట్ లేదు. ఆకు తనిఖీ పనిచేస్తుంది. పథకాలు, అడగండి కోసం ఇంటర్నెట్ కావాలి.</string>
+
+    <string name="nav_scan">ఆకు</string>
+    <string name="nav_schemes">పథకాలు</string>
+    <string name="nav_helpline">హెల్ప్‌లైన్</string>
+    <string name="nav_ask">అడగండి</string>
+
+    <string name="scan_title">ఆకును తనిఖీ చేయండి</string>
+    <string name="scan_subtitle">పగటి వెలుతురులో ఒక ఆకును దగ్గర నుండి ఫోటో తీయండి. ఆకు ఫోటో అంతా నిండి ఉండాలి.</string>
+    <string name="preview_empty">మీ ఫోటో ఇక్కడ కనిపిస్తుంది</string>
+    <string name="preview_description">మీరు ఎంచుకున్న ఆకు ఫోటో</string>
+    <string name="btn_camera">ఫోటో తీయండి</string>
+    <string name="btn_gallery">ఫోటో ఎంచుకోండి</string>
+    <string name="btn_analyze">ఈ ఆకును తనిఖీ చేయండి</string>
+    <string name="btn_listen">వినండి</string>
+    <string name="toast_capture_cancelled">ఫోటో తీయలేదు</string>
+    <string name="toast_no_result">ఇంకా వినిపించడానికి ఏమీ లేదు</string>
+
+    <string name="status_model_error">ఆకు తనిఖీ ప్రారంభం కాలేదు (%1$s). యాప్‌ను మళ్లీ ఇన్‌స్టాల్ చేయండి.</string>
+    <string name="status_ready">ఫోటో సిద్ధంగా ఉంది. \"ఈ ఆకును తనిఖీ చేయండి\" నొక్కండి.</string>
+    <string name="status_running">ఆకును తనిఖీ చేస్తున్నాం…</string>
+    <string name="status_failed">ఈ ఫోటోను చదవలేకపోయాం (%1$s). మరో ఫోటో ప్రయత్నించండి.</string>
+
+    <string name="chip_healthy">ఆరోగ్యంగా కనిపిస్తోంది</string>
+    <string name="chip_possible">సంభావ్య వ్యాధి</string>
+    <string name="chip_unsure">ఖచ్చితంగా తెలియదు</string>
+    <string name="result_crop">పంట: %1$s</string>
+    <string name="result_healthy_note">వ్యాధి సూచనలు కనిపించలేదు. మొక్కను గమనిస్తూ ఉండండి, ముఖ్యంగా వర్షం తర్వాత.</string>
+    <string name="result_disease_note">ఆకుకు ఈ సమస్య ఉండవచ్చని ఫోన్ భావిస్తోంది. ఏదైనా పిచికారీ చేసే ముందు మీ ముందున్న ఆకుతో సరిపోల్చండి.</string>
+    <string name="result_unsure_title">ఈ ఫోటో నుండి చెప్పలేం</string>
+    <string name="result_unsure_note">పగటి వెలుతురులో, సాదా నేపథ్యంపై, ఒక ఆకును దగ్గర నుండి మళ్లీ ఫోటో తీయండి. ఆకు వెబ్‌సైట్‌లో ఇచ్చిన పంటలకు చెందకపోతే, ఈ తనిఖీ దాన్ని అంచనా వేయలేదు.</string>
+    <string name="result_single_title">%1$s ను తనిఖీ చేయలేం</string>
+    <string name="result_single_note">ఈ పంటకు ఒకే స్థితి మాత్రమే తనిఖీకి తెలుసు, కాబట్టి ఆరోగ్యకరమైన, జబ్బు ఆకుల మధ్య తేడా చెప్పలేదు. వ్యవసాయ అధికారిని అడగండి లేదా అడగండి ట్యాబ్ వాడండి.</string>
+    <string name="result_alt">ఇతర అవకాశాలు: %1$s</string>
+    <string name="result_caution">ఇది ఫోన్ ఇచ్చిన సూచన మాత్రమే. పొలంలో తీసిన ఫోటోలను తరచుగా తప్పుగా అంచనా వేస్తుంది. చికిత్సకు డబ్బు ఖర్చు చేసే ముందు ఆకును వ్యవసాయ అధికారికి చూపించండి.</string>
+    <string name="scan_trust">ఎందుకు సూచన మాత్రమే? ఈ తనిఖీ శుభ్రమైన ల్యాబ్ ఫోటోలతో నేర్పించారు. వెబ్‌సైట్‌లో సరైన పంట, కనిపించే ఆకు వంటి మరిన్ని తనిఖీలు ఉన్నాయి, ఈ యాప్‌లో లేవు.</string>
+    <string name="speak_healthy">%1$s ఆకు. ఆరోగ్యంగా కనిపిస్తోంది.</string>
+    <string name="speak_possible">%1$s ఆకు. ఇది %2$s కావచ్చు.</string>
+    <string name="speak_unsure">ఈ ఫోటో నుండి ఆకును అంచనా వేయలేం. పగటి వెలుతురులో దగ్గర నుండి ఫోటో తీయండి.</string>
+
     <string name="schemes_title">ప్రభుత్వ పథకాలు</string>
-    <string name="voice_title">వాయిస్ &amp; హెల్ప్‌లైన్</string>
-    <string name="voice_subtitle">బహుభాష సహాయం కోసం ఎప్పుడైనా కాల్ చేయండి</string>
-    <string name="voice_call">హెల్ప్‌లైన్‌కు కాల్ చేయండి</string>
+    <string name="schemes_subtitle">ఏ పథకంపైనైనా \"సులభంగా వివరించండి\" నొక్కండి, లేదా కింద మీ పొలం గురించి రాయండి.</string>
+    <string name="schemes_advisor_label">మీ పొలం గురించి రాయండి</string>
+    <string name="schemes_advisor_hint">ఉదాహరణ: మహారాష్ట్రలో 2 ఎకరాల పత్తి</string>
+    <string name="schemes_advisor_btn">నాకు పథకాలు కనుగొనండి</string>
+    <string name="schemes_loading">పథకాలు లోడ్ అవుతున్నాయి…</string>
+    <string name="schemes_ai_thinking">పథకాలు చూస్తున్నాం…</string>
+    <string name="schemes_failed">పథకాలు లోడ్ కాలేదు. ఇంటర్నెట్, సర్వర్ చిరునామా తనిఖీ చేయండి.</string>
+    <string name="schemes_need_text">ముందు మీ పొలం గురించి ఒక వాక్యం రాయండి.</string>
+    <string name="scheme_explain">సులభంగా వివరించండి</string>
+    <string name="scheme_open">అధికారిక సైట్</string>
+
+    <string name="voice_title">హెల్ప్‌లైన్</string>
+    <string name="voice_subtitle">మీ భాషలో ఒకరితో మాట్లాడండి. కాల్ ఉచితం.</string>
+    <string name="voice_call">1800-123-4567 కు కాల్ చేయండి</string>
     <string name="voice_how">ఇది ఎలా పనిచేస్తుంది</string>
-    <string name="voice_steps">1) టోల్-ఫ్రీ 1800-123-4567 కు కాల్ చేయండి\n2) మీ భాషను ఎంచుకోండి\n3) సమస్యను వివరించి SMS ద్వారా పరిష్కారం పొందండి</string>
-    <string name="chat_title">AI సహాయకుడు (Gemini)</string>
-    <string name="chat_subtitle">వెబ్ చాట్ లాగా — AgroVision సర్వర్ + Wi‑Fi అవసరం. వ్యాధి స్కాన్ ఆఫ్‌లైన్.</string>
-    <string name="chat_welcome">నమస్కారం! నేను వెబ్‌సైట్‌లోని Gemini సహాయకుడిని. పంటలు, వ్యాధులు, పథకాలు అడగండి. PCలో Flask నడుపుతూ ఉండండి.</string>
+    <string name="voice_step_1">1. టోల్-ఫ్రీ నంబర్‌కు కాల్ చేయండి.</string>
+    <string name="voice_step_2">2. మీ భాషను ఎంచుకోండి.</string>
+    <string name="voice_step_3">3. సమస్యను వివరించండి. పరిష్కారం SMS ద్వారా వస్తుంది.</string>
+
+    <string name="chat_title">మీ పంట గురించి అడగండి</string>
+    <string name="chat_subtitle">సమాధానాలు AgroVision సర్వర్ నుండి వస్తాయి, ఇంటర్నెట్ అవసరం.</string>
+    <string name="chat_welcome">నమస్కారం! పంట వ్యాధులు, వ్యవసాయ సూచనలు లేదా ప్రభుత్వ పథకాల గురించి అడగండి.</string>
     <string name="chat_thinking">ఆలోచిస్తోంది…</string>
-    <string name="chat_hint">వ్యాధులు, పథకాలు లేదా సంరక్షణ సూచనలు అడగండి</string>
-    <string name="api_base_url">http://10.0.2.2:5000</string>
-    <string name="chat_offline">చాట్‌కు ఇంటర్నెట్ మరియు నడుస్తున్న AgroVision సర్వర్ కావాలి.</string>
-    <string name="chat_error_generic">సహాయకుడిని చేరుకోలేకపోయాం. strings.xmlలో సర్వర్ URL మరియు .envలో GEMINI_API_KEY తనిఖీ చేయండి.</string>
+    <string name="chat_hint">మీ ప్రశ్న రాయండి</string>
+    <string name="btn_send">పంపండి</string>
+    <string name="chat_suggest_1">టమాటా ఆకులపై మచ్చలు</string>
+    <string name="chat_suggest_2">2 ఎకరాలకు ఏ పథకాలు?</string>
+    <string name="chat_suggest_3">వరికి నీరు ఎప్పుడు పెట్టాలి?</string>
+    <string name="chat_offline">అడగడానికి ఇంటర్నెట్ కావాలి. కనెక్ట్ అయి మళ్లీ ప్రయత్నించండి.</string>
+    <string name="chat_error_generic">సహాయకుడిని చేరుకోలేకపోయాం. సర్వర్ నడుస్తోందో, config.xml లో చిరునామా సరైనదో చూడండి.</string>
 </resources>

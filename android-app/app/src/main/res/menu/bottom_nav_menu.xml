@@ -1,19 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/nav_detect"
-        android:title="Detect"
-        android:icon="@android:drawable/ic_menu_camera" />
-    <item
-        android:id="@+id/nav_schemes"
-        android:title="Schemes"
-        android:icon="@android:drawable/ic_menu_agenda" />
-    <item
-        android:id="@+id/nav_voice"
-        android:title="Voice"
-        android:icon="@android:drawable/ic_btn_speak_now" />
-    <item
-        android:id="@+id/nav_chat"
-        android:title="Chat"
-        android:icon="@android:drawable/ic_dialog_email" />
+    <item android:id="@+id/nav_detect" android:title="@string/nav_scan" android:icon="@drawable/ic_leaf" />
+    <item android:id="@+id/nav_schemes" android:title="@string/nav_schemes" android:icon="@drawable/ic_schemes" />
+    <item android:id="@+id/nav_voice" android:title="@string/nav_helpline" android:icon="@drawable/ic_call" />
+    <item android:id="@+id/nav_chat" android:title="@string/nav_ask" android:icon="@drawable/ic_chat" />
 </menu>

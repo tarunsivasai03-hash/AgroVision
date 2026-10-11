@@ -1,42 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AgroVision</string>
-    <string name="title_app">AgroVision</string>
-    <string name="tagline">Smarter crop care for every field.</string>
-    <string name="btn_camera">Camera</string>
-    <string name="btn_gallery">Gallery</string>
-    <string name="btn_analyze">Analyze Health</string>
+    <string name="app_name" translatable="false">AgroVision</string>
+    <string name="title_app" translatable="false">AgroVision</string>
+    <string name="tagline">Check a leaf. Find help.</string>
     <string name="lang_label">Language</string>
-    <string name="hint_select">Select or capture an image of a leaf to start analysis.</string>
-    <string name="image_ready">Image ready for analysis.</string>
-    <string name="model_loaded">AI Model Loaded. Ready to protect your crops.</string>
-    <string name="model_error">AI Model Error: %1$s</string>
-    <string name="scan_running">Running deep scan on device...</string>
-    <string name="scan_failed">Scan Failed: %1$s</string>
-    <string name="analysis_title">Analysis Results</string>
-    <string name="diagnosis_prefix">DIAGNOSIS:</string>
-    <string name="confidence_prefix">Confidence:</string>
-    <string name="healthy_note">Plant looks healthy. Keep regular care and monitoring.</string>
-    <string name="disease_note">Action required: Potential disease detected. Check recommended cures.</string>
-    <string name="toast_capture_cancelled">Camera capture cancelled</string>
-    <string name="schemes_title">Government Schemes</string>
-    <string name="schemes_subtitle">Same Gemini advisor as the website — tap a scheme or ask below.</string>
-    <string name="schemes_advisor_hint">e.g. Which schemes for 2 acres of cotton in Maharashtra?</string>
-    <string name="schemes_advisor_btn">✨ Get AI scheme advice</string>
+    <string name="lang_current" translatable="false">English</string>
+    <string name="offline_banner">No internet. Leaf checks still work. Schemes and Ask need a connection.</string>
+
+    <string name="nav_scan">Leaf</string>
+    <string name="nav_schemes">Schemes</string>
+    <string name="nav_helpline">Helpline</string>
+    <string name="nav_ask">Ask</string>
+
+    <string name="scan_title">Check a leaf</string>
+    <string name="scan_subtitle">Take one leaf close up, in daylight, with the leaf filling the photo.</string>
+    <string name="preview_empty">Your photo will show here</string>
+    <string name="preview_description">The leaf photo you chose</string>
+    <string name="btn_camera">Take photo</string>
+    <string name="btn_gallery">Choose photo</string>
+    <string name="btn_analyze">Check this leaf</string>
+    <string name="btn_listen">Read aloud</string>
+    <string name="toast_capture_cancelled">No photo taken</string>
+    <string name="toast_no_result">Nothing to read yet</string>
+
+    <string name="status_model_error">The leaf checker could not start (%1$s). Reinstall the app.</string>
+    <string name="status_ready">Photo ready. Tap Check this leaf.</string>
+    <string name="status_running">Checking the leaf…</string>
+    <string name="status_failed">This photo could not be read (%1$s). Try another photo.</string>
+
+    <string name="chip_healthy">Looks healthy</string>
+    <string name="chip_possible">Possible disease</string>
+    <string name="chip_unsure">Not sure</string>
+    <string name="result_crop">Crop: %1$s</string>
+    <string name="result_healthy_note">No sign of disease was found. Keep watching the plant, especially after rain.</string>
+    <string name="result_disease_note">The phone thinks the leaf may have this problem. Compare with the leaf in front of you before you spray anything.</string>
+    <string name="result_unsure_title">Cannot tell from this photo</string>
+    <string name="result_unsure_note">Try again with one leaf close up, in daylight, against a plain background. If the leaf is not from a crop listed on the website, this checker cannot judge it.</string>
+    <string name="result_single_title">%1$s cannot be checked</string>
+    <string name="result_single_note">The checker knows only one condition for this crop, so it cannot tell a healthy leaf from a sick one. Ask an agriculture officer or use the Ask tab.</string>
+    <string name="result_alt">Other possibilities: %1$s</string>
+    <string name="result_caution">This is a hint from the phone alone. Photos taken in a field are often misjudged. Show the leaf to an agriculture officer before you spend money on treatment.</string>
+    <string name="scan_trust">Why only a hint? The checker was trained on clean lab photos. The website adds more checks (the right crop, a visible leaf), and this app does not.</string>
+    <string name="speak_healthy">%1$s leaf. It looks healthy.</string>
+    <string name="speak_possible">%1$s leaf. It may be %2$s.</string>
+    <string name="speak_unsure">The leaf cannot be judged from this photo. Try a closer photo in daylight.</string>
+
+    <string name="schemes_title">Government schemes</string>
+    <string name="schemes_subtitle">Tap Explain simply on any scheme, or describe your farm below.</string>
+    <string name="schemes_advisor_label">Describe your farm</string>
+    <string name="schemes_advisor_hint">For example: 2 acres of cotton in Maharashtra</string>
+    <string name="schemes_advisor_btn">Find schemes for me</string>
     <string name="schemes_loading">Loading schemes…</string>
-    <string name="schemes_ai_thinking">Gemini is analyzing schemes…</string>
-    <string name="voice_title">Voice &amp; Helpline</string>
-    <string name="voice_subtitle">Call for multilingual help anytime</string>
-    <string name="voice_call">Call helpline</string>
+    <string name="schemes_ai_thinking">Looking through the schemes…</string>
+    <string name="schemes_failed">Could not load the schemes. Check your connection and the server address.</string>
+    <string name="schemes_need_text">Write a line about your farm first.</string>
+    <string name="scheme_explain">Explain simply</string>
+    <string name="scheme_open">Official site</string>
+
+    <string name="voice_title">Helpline</string>
+    <string name="voice_subtitle">Speak to someone in your language. Free to call.</string>
+    <string name="voice_call">Call 1800-123-4567</string>
     <string name="voice_how">How it works</string>
-    <string name="voice_steps">1) Call toll-free 1800-123-4567\n2) Pick your language\n3) Describe the issue and get remedy via SMS</string>
-    <string name="chat_title">AI Assistant (Gemini)</string>
-    <string name="chat_subtitle">Same as web chat — needs AgroVision server + Wi‑Fi. Disease scan works offline.</string>
-    <string name="chat_welcome">Hi! I use the same Gemini assistant as the website. Ask about crops, diseases, or schemes. Keep Flask running on your PC.</string>
+    <string name="voice_step_1">1. Call the toll-free number.</string>
+    <string name="voice_step_2">2. Choose your language.</string>
+    <string name="voice_step_3">3. Describe the problem. The remedy comes by SMS.</string>
+
+    <string name="chat_title">Ask about your crop</string>
+    <string name="chat_subtitle">Answers come from the AgroVision server and need a connection.</string>
+    <string name="chat_welcome">Hello! Ask me about crop diseases, farming tips or government schemes.</string>
     <string name="chat_thinking">Thinking…</string>
-    <string name="chat_hint">Ask about diseases, schemes, or care tips</string>
-    <!-- Emulator: 10.0.2.2 = host machine. Physical device: use your PC LAN IP, e.g. http://192.168.0.15:5000 -->
-    <string name="api_base_url">http://10.0.2.2:5000</string>
-    <string name="chat_offline">Chat needs internet. Connect to Wi‑Fi and ensure the AgroVision server is running.</string>
-    <string name="chat_error_generic">Could not reach the assistant. Check the server URL in strings.xml and GEMINI_API_KEY in .env.</string>
+    <string name="chat_hint">Type your question</string>
+    <string name="btn_send">Send</string>
+    <string name="chat_suggest_1">Spots on my tomato leaves</string>
+    <string name="chat_suggest_2">Which schemes for 2 acres?</string>
+    <string name="chat_suggest_3">When to water paddy?</string>
+    <string name="chat_offline">Ask needs internet. Connect and try again.</string>
+    <string name="chat_error_generic">The assistant could not be reached. Check that the server is running and the address in config.xml is right.</string>
 </resources>

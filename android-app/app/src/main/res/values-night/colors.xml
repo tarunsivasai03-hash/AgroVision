@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="paper">#101812</color>
+    <color name="surface">#172119</color>
+    <color name="surface_2">#1E2A21</color>
+    <color name="rule">#2D3B30</color>
+    <color name="ink">#EEF3EC</color>
+    <color name="ink_2">#C9D4CB</color>
+    <color name="ink_3">#95A598</color>
+    <color name="leaf">#7FC48C</color>
+    <color name="leaf_deep">#A9DDB2</color>
+    <color name="leaf_wash">#1D3223</color>
+    <color name="turmeric">#F0B43C</color>
+    <color name="on_turmeric">#17221A</color>
+    <color name="soil">#DDA680</color>
+    <color name="soil_wash">#2E2219</color>
+    <color name="danger">#F19A91</color>
+    <color name="danger_wash">#3A1E1B</color>
+    <color name="on_leaf">#10200F</color>
+</resources>
